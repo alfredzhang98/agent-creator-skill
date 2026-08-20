@@ -47,7 +47,7 @@ The loop is not a free-running cycle. Three gates shape it:
 | **Memory** | Cross-task knowledge | `08-state-persistence.md`, `02-tools.md` | Record library with lineage (fork/edit), BM25 example retrieval as a tool |
 | **Skills** | Reusable specialised abilities | `10-action-space-sdk.md` | The domain SDK: declarative parts/articulations vocabulary + self-test vocabulary, pluggable via SdkProfile |
 | **Evaluator / Verifier** | Is it correct? Is it done? | `03-evaluator-verifier.md` | Compile + two-layer QC → typed signal bundle → one primary issue → suggested next steps |
-| **Guardrails** | Permissions, safety, limits | `04-sandboxed-execution.md` | Subprocess isolation with timeouts; bound-file sandbox; anti-reward-hacking prompt language; tolerance clamps |
+| **Guardrails** | Permissions, safety, limits | `04-sandboxed-execution.md` | OS-isolated sandbox backend for generated code, supervised by parent-enforced timeouts; harness-bound file targets; anti-reward-hacking prompt language; tolerance clamps |
 | **Cost / Billing** | Spend metering + caps | `07-cost-guardrails.md` | Per-model pricing tables (cached/uncached/write tiers), dual ledgers, hard USD cap, max-turns |
 
 ## How the modules interlock (the load-bearing edges)
@@ -84,12 +84,12 @@ These cross-module couplings are where production agents differ from demos:
 
 | Agent size | Required | Skippable |
 |---|---|---|
-| Prototype (single model, single task) | Loop, 2-3 tools, verifier, cost cap, sandbox for generated code | Providers layer, memory, batch orchestration, prompt build matrix |
+| Prototype (single model, single task) | Loop, 2-3 tools, verifier, cost cap, OS-isolated sandbox for generated code | Providers layer, memory, batch orchestration, prompt build matrix |
 | Production single-domain | + persistence/traces, prompt-as-code, guardrail battery | Multi-provider (keep a seam) |
 | Platform / fleet | + provider abstraction, compaction policy, derived-run flows, batch concurrency | — |
 
-Never skippable at any size: **verifier**, **cost cap**, **sandboxing of
-generated code**, **tool errors as data**.
+Never skippable at any size: **verifier**, **cost cap**, **OS-level isolation
+of generated code**, **tool errors as data**.
 
 ## Vocabulary used across the references
 

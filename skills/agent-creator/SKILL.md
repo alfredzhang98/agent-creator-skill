@@ -73,7 +73,8 @@ Work through the modules in this order — each layer depends on the previous:
 6. **Provider layer** (`05-providers.md`): only if you need >1 LLM backend;
    otherwise keep a thin seam you can widen later.
 7. **Guardrails & cost** (`07-cost-guardrails.md`, `04-sandboxed-execution.md`):
-   hard budget cap, max turns, subprocess isolation for generated code.
+   hard budget cap, max turns, and an OS-isolated sandbox backend for
+   executing generated code.
 8. **Persistence** (`08-state-persistence.md`): staging-then-promote, traces,
    provenance. Do this before you scale up runs — trajectories are the asset.
 9. **Orchestration** (`09-orchestration.md`): CLI/entry points, derived runs
@@ -90,7 +91,7 @@ provenance) → design-decision table → constants table → a generic
 
 `templates/` contains stdlib-only Python skeletons distilled from the case
 studies: `agent_loop.py`, `tools.py`, `verifier.py`, `provider_adapter.py`,
-`cost_meter.py`, `sandbox_runner.py`. They are starting points, not a
+`cost_meter.py`, `sandbox_backend.py`. They are starting points, not a
 framework — copy, rename, and specialise.
 
 ## The five load-bearing invariants
@@ -113,9 +114,13 @@ is a known production failure mode:
 4. **Budgets are enforced in the loop, not hoped for.** Hard USD cap checked
    both before the LLM call and after usage recording; max-turns counts
    no-action turns too; every terminal path persists the cost ledger.
-5. **Never trust generated code with your process.** Execute it in a spawned
-   subprocess with a wall-clock kill, structured JSON result channel, and
-   errors returned in-band.
+5. **Never execute generated code without an isolated sandbox.** Process
+   timeouts and rlimits improve *reliability* but provide no security
+   boundary — a child process is killable isolation, not a sandbox. Run
+   model-authored code inside an OS-level boundary (container with
+   networking disabled, microVM, gVisor, or a remote sandbox service),
+   supervise it with a parent-enforced wall-clock kill, and return every
+   failure in-band as typed data.
 
 ## Dependencies
 
@@ -141,4 +146,4 @@ and enriches the references where its design differs. See
   self-tests do; dedupe if it already ran the same checks.
 - **Treating the anatomy as a checklist of mandatory boxes.** Small agents
   legitimately skip Memory, multi-provider, and batch orchestration. Never
-  skip the verifier, the cost cap, or sandboxing of generated code.
+  skip the verifier, the cost cap, or OS-level isolation of generated code.

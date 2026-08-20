@@ -31,7 +31,7 @@ skills/agent-creator/
 │   ├── 01-agent-loop.md         #   turn lifecycle, success gate, escalation
 │   ├── 02-tools.md              #   declarative tools, errors-as-data, binding
 │   ├── 03-evaluator-verifier.md #   typed signals, primary-issue selection
-│   ├── 04-sandboxed-execution.md#   subprocess isolation, timeouts, rlimits
+│   ├── 04-sandboxed-execution.md#   OS isolation vs process supervision
 │   ├── 05-providers.md          #   multi-LLM abstraction, codecs, compaction
 │   ├── 06-prompts.md            #   prompt-as-code, per-provider build matrix
 │   ├── 07-cost-guardrails.md    #   pricing tables, dual ledgers, hard caps
@@ -40,7 +40,7 @@ skills/agent-creator/
 │   └── 10-action-space-sdk.md   #   shaping what the model may produce
 ├── templates/                   # stdlib-only Python skeletons to copy
 │   ├── agent_loop.py  tools.py  verifier.py
-│   ├── provider_adapter.py  cost_meter.py  sandbox_runner.py
+│   ├── provider_adapter.py  cost_meter.py  sandbox_backend.py
 │   └── README.md
 └── case-studies/
     ├── README.md                # how to distill the next agent (incremental)
@@ -60,7 +60,7 @@ flowchart TB
     SP["📜 System Prompt<br/><i>ref 06 · prompts</i>"] -.-> LLM
     LLM --> DEC{"decide:<br/>answer · tool · plan"}
     DEC -->|tool call| TOOLS["🔧 Tools / APIs / code<br/><i>ref 02 · tools</i>"]
-    TOOLS --> SBX["🔒 Sandboxed execution<br/><i>ref 04 · sandbox</i>"]
+    TOOLS --> SBX["🔒 OS-isolated sandbox<br/><i>ref 04 · sandbox</i>"]
     SBX --> VER["✅ Evaluator / Verifier<br/>typed signals · one primary issue<br/><i>ref 03 · verifier</i>"]
     VER --> ST["🗂 State / Context / Memory<br/><i>ref 08 · persistence</i>"]
     ST --> LLM
@@ -113,7 +113,8 @@ Distilled to one screen — the non-negotiables every reference elaborates:
 2. **Tool errors are data, not exceptions** — the model self-corrects in-band.
 3. **One primary issue at a time** — priority ladder over N failures.
 4. **Budgets are enforced in the loop** — USD cap pre-call and post-usage.
-5. **Never trust generated code with your process** — subprocess + kill.
+5. **Never execute generated code without an isolated sandbox** — a child
+   process is killable isolation, not a security boundary.
 
 ## License
 

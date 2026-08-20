@@ -127,7 +127,7 @@ class Verifier:
     verify_tool_name = "verify"
 
     def __init__(self, check: Callable[[], Bundle]) -> None:
-        self._check = check              # run inside sandbox_runner for isolation
+        self._check = check              # run via a SandboxBackend (see sandbox_backend.py)
         self.edit_revision = 0           # bumped by every successful mutating tool
         self._cached: tuple[int, Bundle] | None = None   # (revision, passing bundle)
         self.attempt_count = 0

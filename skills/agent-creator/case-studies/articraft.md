@@ -125,7 +125,7 @@ cli/main.py ──► agent/runner.py ──► single_run.py (staging dir, run.
 | Same-failure loops | Failure signatures, streak escalation to probe-first playbooks, compaction on plateau |
 | Silent/empty responses looping forever | No-action turns consume turn budget; two-stage escalation with provider diagnostics |
 | Runaway spend | Dual-checkpoint USD cap incl. compaction spend; cost.json persisted on every terminal path |
-| Generated-code hangs/crashes | Spawned subprocess + wall-clock kill for compile and probe |
+| Generated-code hangs/crashes | Spawned subprocess + wall-clock kill for compile and probe (a *reliability* guard — see the sharp edge below) |
 | Context blowup | Pressure+streak compaction; duplicate retrieval content replaced by a sentinel |
 | Torn/corrupt library state | Staging-then-promote; append-only revisions; regenerable materialization cache |
 
@@ -133,8 +133,14 @@ cli/main.py ──► agent/runner.py ──► single_run.py (staging dir, run.
 
 - Unknown (provider, model) pricing silently disables the cost tracker — a
   user-set cap is then never enforced. Fail loudly instead.
-- No memory rlimit on subprocesses (only time limits); the probe namespace is
-  not an import/filesystem sandbox — isolation relies on process boundaries.
+- **Process isolation is not a security sandbox.** Articraft runs
+  model-authored CAD scripts under subprocess + timeout with no OS-level
+  boundary: no network isolation, no filesystem confinement, no privilege
+  drop, no memory rlimit, and no import blocking — the "inspection only"
+  rule is a prompt contract, not enforcement. Defensible for a single-user
+  tool running its own agent's output on a trusted machine; **do not copy
+  this for less-trusted input.** See reference 04 for the backend seam that
+  supplies the missing boundary.
 - Repeat-failure detection hashes the whole signal bundle: cosmetic changes
   (a different measured distance) defeat streak detection.
 - Plain `write_json` (no temp-file+rename) can tear on crash; the design
@@ -146,7 +152,7 @@ cli/main.py ──► agent/runner.py ──► single_run.py (staging dir, run.
 
 Replace "CadQuery script" with any rich artifact (SQL migration, Terraform
 plan, video-editing EDL, protein design) and the machinery is unchanged:
-constrained authoring vocabulary → subprocess verify → typed signals → one
+constrained authoring vocabulary → sandboxed verify → typed signals → one
 primary issue → revision-gated success → staged persistence. The domain
 specifics live in exactly two places: the SDK (action space, reference
 `10`) and the QC battery (verifier, reference `03`). Everything else is
