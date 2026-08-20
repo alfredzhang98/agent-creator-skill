@@ -1,14 +1,25 @@
 # agent-creator-skill
 
-**Reusable design knowledge for building LLM agents — distilled from production agent codebases.**
+**Turn production agent architecture into reusable skills.**
+Distilled from real agent codebases: loop, tools, verifier, sandboxing,
+cost control, state, and orchestration.
+
+```bash
+npx skills add alfredzhang98/agent-creator-skill --skill agent-creator
+```
+
+Then tell your coding agent (Claude Code, Codex, Cursor, …):
+*"Using the agent-creator skill, build me an agent that does X."*
+
+---
 
 Most agent knowledge is trapped inside working codebases: the loop invariants,
 the guardrail constants, the failure modes someone already paid to discover.
-This repository extracts that knowledge into an installable **agent skill**:
-ten module references, runnable code templates, and per-agent case studies.
-Point your coding agent (Claude Code, Codex, Cursor, …) at it and say
-*"build me an agent that does X"* — it will design against patterns that are
-known to survive production, instead of reinventing a fragile ReAct loop.
+This repository extracts that knowledge into an installable **agent skill** —
+ten module references with `file:line` provenance, runnable code templates,
+and per-agent case studies — so your next agent is designed against patterns
+that are known to survive production, instead of reinventing a fragile ReAct
+loop. Not a prompt collection.
 
 ## What's inside
 
@@ -85,13 +96,9 @@ Each distilled agent adds a case study and enriches the references where its
 design differs. Currently distilled: **[Articraft](skills/agent-creator/case-studies/articraft.md)**
 (text → articulated 3D assets; ~20k lines of agent code read and verified).
 
-## Install
+## Usage
 
-```bash
-npx skills add https://github.com/alfredzhang98/agent-creator-skill --skill agent-creator
-```
-
-Then ask your agent things like:
+Ask your agent things like:
 
 - *"Using the agent-creator skill, design an agent that writes and verifies
   SQL migrations."*
