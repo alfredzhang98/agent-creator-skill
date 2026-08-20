@@ -116,6 +116,31 @@ Distilled to one screen — the non-negotiables every reference elaborates:
 5. **Never execute generated code without an isolated sandbox** — a child
    process is killable isolation, not a security boundary.
 
+## Security posture
+
+This repository is **documentation and inert code skeletons**. It ships no
+execution engine: there is no `exec`, `eval`, `compile`, or process spawning
+in any template, and nothing here runs code on install or on use.
+
+That is a deliberate design position, not an omission. `templates/sandbox_backend.py`
+defines the *contract* for executing model-generated code — a `SandboxPolicy`
+(network disabled, isolated workspace, no inherited env, non-root, process
+cap), the `SandboxBackend` interface you implement for your deployment, and a
+default that **refuses to execute anything** with an actionable error. You
+supply the OS-level boundary (container / microVM / gVisor / remote sandbox
+service); this skill will not hand you a general-purpose code-execution
+utility dressed up as a sandbox.
+
+The governing rule, spelled out in [reference 04](skills/agent-creator/references/04-sandboxed-execution.md):
+
+> **A child process is a reliability boundary, not a security sandbox.**
+
+Automated scanners flag this skill for `REMOTE_CODE_EXECUTION` /
+`PROMPT_INJECTION` because its *subject matter* is building agents that
+process untrusted input and run generated artifacts. That is a description of
+the topic, not of behavior in this repository. Read the templates — they are
+short, stdlib-only, and do nothing on their own.
+
 ## License
 
 Apache-2.0. Case-study knowledge is distilled from
