@@ -1,0 +1,10 @@
+{
+  "name": "agent-creator",
+  "version": "0.1.0",
+  "description": "Distilled design knowledge from production LLM agents, packaged as reusable skills for building new agents: loop, tools, verifier, providers, prompts, cost guardrails, state, sandboxing.",
+  "author": {
+    "name": "alfredzhang98"
+  },
+  "repository": "https://github.com/alfredzhang98/agent-creator-skill",
+  "license": "Apache 2.0"
+}
