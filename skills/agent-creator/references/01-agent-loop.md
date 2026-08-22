@@ -1,6 +1,6 @@
 # 01. The Agent Loop
 
-**Maps to:** LLM/Policy · Tools · Executor · Evaluator/Verifier · Guardrails · Cost · State/Context · Memory · **Distilled from:** Articraft `agent/harness.py`, `agent/models.py`, `agent/payload_preview.py`
+**Maps to:** LLM/Policy · Tools · Executor · Evaluator/Verifier · Guardrails · Cost · State/Context · Memory · **Distilled from:** Articraft `agent/harness.py`, `agent/models.py`, `agent/payload_preview.py` · Claude Code 2.1.88 `src/query.ts`, `src/services/tools/StreamingToolExecutor.ts`
 
 ## Why this module exists
 
@@ -51,6 +51,69 @@ Loop state lives in helper objects, but agents are pickled mid-run and old check
 ### Dry-run payload preview
 
 `build_provider_payload_preview` (`agent/payload_preview.py:24-83`) reconstructs the exact first request a real run would send — system prompt, docs context, first-turn messages, tool schemas, cache settings — then instantiates the provider with `dry_run=True` (client creation skipped) and returns `llm.build_request_preview(...)`. The agent's real interface is the bytes it sends; making them inspectable offline without credentials enables golden-file tests of prompt assembly.
+
+## Comparative: Claude Code's loop
+
+Claude Code's `queryLoop` (`src/query.ts:241-1729`) solves the same problem
+without a compiler to gate success on, and contributes three things Articraft's
+loop does not have.
+
+**The control flow is a closed, named vocabulary.** The loop returns one of ten
+`Terminal` reasons — `completed`, `max_turns`, `blocking_limit`,
+`prompt_too_long`, `image_error`, `model_error`, `aborted_streaming`,
+`aborted_tools`, `hook_stopped`, `stop_hook_prevented` — and records one of
+seven `Continue` reasons on the state it carries forward: `next_turn`,
+`collapse_drain_retry`, `reactive_compact_retry`, `max_output_tokens_escalate`,
+`max_output_tokens_recovery`, `stop_hook_blocking`, `token_budget_continuation`
+(`query.ts:646-1725`). The stated reason for recording the transition is
+testing — it "lets tests assert recovery paths fired without inspecting message
+contents" (`query.ts:214-216`) — but the larger payoff is operational: *why did
+this run stop* has an answer that is a value rather than an archaeology
+exercise. All cross-iteration state lives in one `State` object rewritten
+wholesale at each `continue` site (`query.ts:204-217, 265-279`), so adding a
+field cannot leave one of the seven paths stale.
+
+**Recovery is a ladder, and each rung fires at most once.** A context overflow
+tries the cheap repair first (drain staged context collapses, keeping granular
+history), then the expensive one (summarise), then surfaces the error
+(`query.ts:1085-1183`). A truncated response first retries the *same* request
+with a larger output cap — "no meta message, no multi-turn dance"
+(`query.ts:1188-1221`) — and only then falls back to a resume message capped at
+3 attempts (`query.ts:164, 1223-1252`). Each rung is guarded by a flag on
+`State` so a failing repair cannot loop: the source records that resetting
+`hasAttemptedReactiveCompact` after a stop-hook block once produced an infinite
+`compact → still too long → error → hook → compact` cycle "burning thousands of
+API calls" (`query.ts:1292-1297`).
+
+**Errors are withheld until recovery is known to fail.** A recoverable API
+error is pushed onto the message list but *not* yielded to the consumer while
+the ladder runs (`query.ts:788-825`); it surfaces only when every rung is
+exhausted. Yielding early leaks an intermediate error to SDK callers that
+terminate on any `error` field, "the recovery loop keeps running but nobody is
+listening" (`query.ts:166-172`). If your loop has consumers, a failed attempt
+that will be retried is not yet news.
+
+**Tools start executing while the response is still streaming.**
+`StreamingToolExecutor` receives each `tool_use` block as it arrives rather than
+after the message completes (`query.ts:837-862`). The cost is a full-state
+rollback path: on a mid-stream fallback the executor is discarded and rebuilt,
+and partial assistant messages are emitted as *tombstones* so the UI and
+transcript drop them — their thinking blocks carry signatures that would 400 on
+replay (`query.ts:712-741, 894-950`).
+
+**Comparative: what gates the exit.** Articraft's finish gate is a revision
+counter versus a fresh compile. Claude Code has no such check — a turn with text
+and no tool calls simply ends (`query.ts:1062, 1357`). What stands in its place
+is a `Stop` hook that can *block* and thereby demand another turn
+(`query.ts:1267-1306`), plus the permission system gating what any turn could
+do in the first place. The transferable rule is the one in `SKILL.md`: exactly
+one authority must be able to refuse a finished attempt. Which authority
+depends on whether your domain admits a mechanical check; that there is one is
+not optional.
+
+**One shared constant worth copying regardless:** no-action turns consume the
+turn budget in both agents, and both abort only after a hard escalation was
+provably delivered.
 
 ## Design decisions
 

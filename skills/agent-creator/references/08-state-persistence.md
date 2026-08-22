@@ -1,6 +1,6 @@
 # 08. State, Traces & Persistence
 
-**Maps to:** State/Context · Memory · Cost · Guardrails · Evaluator/Verifier · **Distilled from:** Articraft `agent/run_context.py`, `agent/single_run.py`, `agent/record_persistence.py`, `agent/traces.py`, `agent/harness_codec.py`, `storage/{layout,revisions,trajectories,materialize,runs}.py`
+**Maps to:** State/Context · Memory · Cost · Guardrails · Evaluator/Verifier · **Distilled from:** Articraft `agent/run_context.py`, `agent/single_run.py`, `agent/record_persistence.py`, `agent/traces.py`, `agent/harness_codec.py`, `storage/{layout,revisions,trajectories,materialize,runs}.py` · Claude Code 2.1.88 `src/utils/sessionStorage.ts`
 
 ## Why this module exists
 
@@ -43,6 +43,51 @@ Instead of copying the whole staging asset tree, the final artifact XML is parse
 ### Rerun semantics and tolerant readback
 
 `write_success_record` accepts the existing record and preserves human-owned fields across an overwrite — created_at, rating, author, display title — refreshing only `updated_at` (`agent/record_persistence.py:775-841`); draft creation instead refuses to clobber an existing id (`agent/record_persistence.py:372-373`). Cost-ledger readback is fully defensive: any IO/decode/shape error returns `(None, None)` instead of raising, and only allowlisted int token fields are extracted (`agent/run_context.py:73-107`).
+
+## Comparative: Claude Code's session state
+
+Articraft persists *runs* — immutable records promoted on success. Claude Code
+persists *conversations* that must survive a crash mid-turn and be resumable
+weeks later by a different binary. Same instinct, different pressure, and three
+mechanisms worth adopting.
+
+**Three kinds of state, stored three different ways.** The transcript is
+append-only JSONL flushed per event (`utils/sessionStorage.ts:1408-1451`);
+metadata is a small record written whole
+(`utils/sessionStorage.ts:264-303`); artifacts stage and promote. Conflating
+them is what makes persistence layers rot — an append-only log you occasionally
+rewrite is neither.
+
+**Subagents get sidechains, not interleaving.**
+`recordSidechainTranscript` (`utils/sessionStorage.ts:1451`) writes a
+subagent's turns to its own file, addressed by agent id
+(`utils/sessionStorage.ts:236-262`), and `AgentMetadata` records enough to
+resume it — including the worktree path so a resumed agent restores the right
+cwd (`tools/AgentTool/runAgent.ts:315-317`). Interleaving a subagent's messages
+into the parent transcript makes both unreadable and makes resume ambiguous
+about who was speaking.
+
+**Readback must be tolerant.** A transcript is written by whichever version of
+the agent existed that day, and its tail may be a half-written line from a
+`kill -9`. `MAX_TRANSCRIPT_READ_BYTES` caps the slurp at 50 MB
+(`utils/sessionStorage.ts:229`), and unparseable entries are skipped rather
+than fatal. The stronger form, which `templates/agentkit/state.py` implements:
+**repair on read**. An assistant message whose `tool_use` has no matching
+`tool_result` — exactly the shape a run killed between dispatch and record
+leaves behind — will fail the next API call on a malformed conversation. Drop
+the orphan when resuming rather than trusting the writer.
+
+**Content replacement is persisted so resume is cache-stable.**
+`recordContentReplacement` (`utils/sessionStorage.ts:1494`) records which tool
+results were swapped for disk previews, and a resumed subagent is handed that
+state back so "the same tool results are re-replaced (prompt cache stability)"
+(`tools/AgentTool/runAgent.ts:305-308`). Resume that reconstructs a
+*semantically* equivalent history but a *byte*-different one silently discards
+the entire prompt cache — the most expensive kind of correct.
+
+**Ids sort chronologically.** Sortable, time-prefixed ids mean `ls`, log greps
+and directory listings all order themselves. Cheap, and every debugging session
+afterwards is slightly better.
 
 ## Design decisions
 
@@ -266,7 +311,10 @@ def _git_commit():
 
 - Articraft's `write_json`/`write_text` are plain writes — no temp-file+rename, no fsync (`storage/repo.py:31-37`) — so power loss can leave torn JSON. Use atomic rename (as in the skeleton) unless you deliberately accept the staging-order + existence-check mitigation.
 - `_replace_tree_from_source` deletes the destination before checking the source exists (`agent/record_persistence.py:157-162`); a rerun whose staging lacks a subtree silently erases the previous revision's copy. Validate the source before any destructive delete.
-- `TraceWriter` opens the trace in `"w"` mode (`agent/traces.py:25`) — a second writer on the same dir truncates an existing trace, and its `close()` swallows all exceptions. Open with `"x"` and let close failures surface.
+- Opening the trace with `"w"` truncates a prior trace on resume. The instinct
+  is to use `"x"` (create-or-fail) — do **not**: `"x"` raises on every resume,
+  which is the case this whole section exists for. Use `"a"`, and make the
+  reader tolerant of a torn final line (`templates/agentkit/state.py`).
 - The strict referenced-asset check fails the whole run at persist time, after all LLM spend (`agent/record_persistence.py:197,222,228`). Correct for library integrity — but run a cheap artifact-parse sanity check earlier in the loop so the expensive failure mode is rare.
 - Overwrite semantics must be an explicit decision per field: Articraft's success path intentionally overwrites but inherits rating/created_at/author (`agent/record_persistence.py:775-841`), while draft creation refuses to clobber (`:372-373`). If you skip this, reruns silently destroy human curation.
 - Retained failure staging and append-only `results.jsonl` grow unboundedly; compaction exists (`storage/runs.py`) but must be invoked. Budget a GC/sweep path from day one.

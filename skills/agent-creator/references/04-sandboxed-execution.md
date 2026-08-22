@@ -1,6 +1,6 @@
 # 04. Executing Generated Code: Isolation & Supervision
 
-**Maps to:** Tools · Guardrails · Evaluator/Verifier · Executor · Cost · **Distilled from:** Articraft `agent/tools/probe_model/{tool.py,runner.py,helpers.py}`, `agent/mp_utils.py`, `agent/runtime_limits.py`, `agent/open_file_limits.py`, `agent/compiler.py`
+**Maps to:** Tools · Guardrails · Evaluator/Verifier · Executor · Cost · **Distilled from:** Articraft `agent/tools/probe_model/{tool.py,runner.py,helpers.py}`, `agent/mp_utils.py`, `agent/runtime_limits.py`, `agent/open_file_limits.py`, `agent/compiler.py` · Claude Code 2.1.88 `src/utils/sandbox/sandbox-adapter.ts`, `src/tools/BashTool/`
 
 > **The one rule in this document:**
 > **A child process is a reliability boundary, not a security sandbox.**
@@ -71,6 +71,60 @@ The sibling heavy workload — URDF compilation — uses `mp.Process` + one-way 
 ### Shared local-work semaphore and FD-budget sizing
 
 `BatchRuntimeLimits` holds one optional `asyncio.Semaphore`; `local_work_slot(limits)` yields immediately when limits is `None` (single-run = unlimited) and otherwise acquires (`agent/runtime_limits.py:9-28`). The **same** object is threaded into the harness, all compile paths, and every probe tool instance (`agent/harness.py:204`, `agent/tools/__init__.py:90-107`), so total concurrent heavy subprocesses across N parallel rollouts is capped by a single number. For sizing, `open_file_worker_cap()` reads `RLIMIT_NOFILE`, counts open FDs via `/dev/fd` (falling back to `/proc/self/fd`), computes `max(1, (soft_limit - open_files - reserve) // per_worker_budget)`, clamps to 1 when usable ≤ 0, and returns `None` when introspection is unavailable so callers fall back to defaults (`agent/open_file_limits.py:21-69`).
+
+## Comparative: Claude Code ships the boundary this reference specifies
+
+Articraft demonstrates the failure mode (subprocess + timeout, no OS boundary).
+Claude Code 2.1.88 is the other half of the argument: a production agent that
+actually wires one in, via `src/utils/sandbox/sandbox-adapter.ts` over the
+external `@anthropic-ai/sandbox-runtime` package.
+
+**The policy is filesystem plus network, expressed as data.** Reads use
+deny-lists with allow-within-deny exceptions; writes use allow-lists with
+deny-within-allow exceptions; the network is host allow/deny plus an explicit
+unix-socket list (`tools/BashTool/prompt.ts:192-213`). Both directions exist
+because the two resources fail differently: you want a broad read surface with
+holes punched out, and a narrow write surface with a few additions.
+
+**The whole configuration is inlined into the model's prompt.** The tool
+description carries the live filesystem and network policy as JSON, so the model
+can tell a sandbox denial from a real error and say which restriction caused it
+(`tools/BashTool/prompt.ts:215-272`). An invisible sandbox produces an agent
+that reports "command failed" and retries forever.
+
+**Escape is a parameter, gated twice, and taught.** `dangerouslyDisableSandbox`
+exists only when policy permits it; the prompt lists the exact evidence that
+justifies using it — `Operation not permitted`, access denied outside allowed
+directories, connection failures to non-allowlisted hosts, unix-socket errors —
+and instructs the model to retry immediately without asking, *because that path
+re-enters the permission dialog anyway* (`tools/BashTool/prompt.ts:228-256`).
+Each escape is judged individually: a previous approval grants nothing.
+
+**Isolation buys autonomy.** `autoAllowBashIfSandboxed` defaults to true
+(`utils/sandbox/sandbox-adapter.ts:471`): a sandboxed command skips the
+permission prompt. This is the argument for building the boundary at all —
+it does not merely contain the agent, it is what lets the agent act without
+asking. See reference 13.
+
+**A guard that cannot run must say so.** If the user explicitly enabled the
+sandbox and it cannot start, the system returns a human-readable reason rather
+than continuing unsandboxed; the source names the previous behaviour "a
+security footgun" (`utils/sandbox/sandbox-adapter.ts:550-556`). Platform
+support is explicit (macOS, Linux, WSL2+) and restrictable per-platform
+(`sandbox-adapter.ts:488-528`).
+
+**Convenience filters are labelled.** `excludedCommands` carries the comment
+"a user-facing convenience feature, not a security boundary … It is not a
+security bug to be able to bypass excludedCommands"
+(`tools/BashTool/shouldUseSandbox.ts:18-20`). Compound commands are split
+before matching so `docker ps && curl evil.com` cannot inherit the exclusion of
+its first part (`shouldUseSandbox.ts:60-69`).
+
+**The bill.** Deciding whether a command is safe requires thousands of lines
+of permission and command-parsing logic, plus a 4,436-line shell parser
+(`utils/bash/bashParser.ts`); reference 13 has the exact split. That is the
+standing cost of an open-world action space — and the strongest argument in
+this library for reference 10.
 
 ## Design decisions
 

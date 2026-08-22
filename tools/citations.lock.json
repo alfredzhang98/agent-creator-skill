@@ -1,0 +1,1573 @@
+{
+ "citations": {
+  "AgentTool/prompt.ts:48-59": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "/** * Whether the agent list should be injected as an attachment message instead * of embedded in the tool description. When true, getPrompt() returns a static * description and attachments.ts emits an agent_listing_delta attachment. * * The dynamic agent list was ~10.2% of fleet cache_creation tokens: MCP async * connect, /reload-plugins, or permission-mode changes mutate the list \u2192 * description\u2026",
+   "fingerprint": "7551c2bbfea1797b",
+   "version": "claude-code-2.1.88"
+  },
+  "AskUserQuestionTool.tsx:155-155": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "requiresUserInteraction() {",
+   "fingerprint": "1a29d1c48a404845",
+   "version": "claude-code-2.1.88"
+  },
+  "BashTool/prompt.ts:228-256": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "const sandboxOverrideItems: Array<string | string[]> = allowUnsandboxedCommands ? [ 'You should always default to running commands within the sandbox. Do NOT attempt to set `dangerouslyDisableSandbox: true` unless:', [ 'The user *explicitly* asks you to bypass sandbox', 'A specific command just failed and you see evidence of sandbox restrictions causing the failure. Note that commands can fail for\u2026",
+   "fingerprint": "4f6bf2ed4d4294df",
+   "version": "claude-code-2.1.88"
+  },
+  "BashTool/prompt.ts:275-369": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "export function getSimplePrompt(): string { // Ant-native builds alias find/grep to embedded bfs/ugrep in Claude's shell, // so we don't steer away from them (and Glob/Grep tools are removed). const embedded = hasEmbeddedSearchTools() const toolPreferenceItems = [ ...(embedded ? [] : [ `File search: Use ${GLOB_TOOL_NAME} (NOT find or ls)`, `Content search: Use ${GREP_TOOL_NAME} (NOT grep or rg)`, \u2026",
+   "fingerprint": "d00bffe32df99980",
+   "version": "claude-code-2.1.88"
+  },
+  "BashTool/prompt.ts:310-328": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "const sleepSubitems = [ 'Do not sleep between commands that can run immediately \u2014 just run them.', ...(feature('MONITOR_TOOL') ? [ 'Use the Monitor tool to stream events from a background process (each stdout line is a notification). For one-shot \"wait until done,\" use Bash with run_in_background instead.', ] : []), 'If your command is long running and you would like to be notified when it finishe\u2026",
+   "fingerprint": "a70f8cd07a04cb23",
+   "version": "claude-code-2.1.88"
+  },
+  "ExitPlanModeV2Tool.ts:182-183": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "isReadOnly() { return false // Now writes to disk",
+   "fingerprint": "aca8eaadac65fca8",
+   "version": "claude-code-2.1.88"
+  },
+  "ExitWorktreeTool.ts:168-168": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "isDestructive(input) {",
+   "fingerprint": "573993e32d46c8cc",
+   "version": "claude-code-2.1.88"
+  },
+  "FileEditTool.ts:90-90": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "strict: true,",
+   "fingerprint": "b13f76e0bb556a9e",
+   "version": "claude-code-2.1.88"
+  },
+  "FileEditTool/prompt.ts:26-26": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "- The edit will FAIL if \\`old_string\\` is not unique in the file. Either provide a larger string with more surrounding context to make it unique or use \\`replace_all\\` to change every instance of \\`old_string\\`.${minimalUniquenessHint}",
+   "fingerprint": "366432a9dd44ca67",
+   "version": "claude-code-2.1.88"
+  },
+  "FileEditTool/prompt.ts:4-5": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "function getPreReadInstruction(): string { return `\\n- You must use your \\`${FILE_READ_TOOL_NAME}\\` tool at least once in the conversation before editing. This tool will error if you attempt an edit without reading the file. `",
+   "fingerprint": "5900b021042233a3",
+   "version": "claude-code-2.1.88"
+  },
+  "FileReadTool/prompt.ts:10-10": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "export const MAX_LINES_TO_READ = 2000",
+   "fingerprint": "ce7ff408ff450e95",
+   "version": "claude-code-2.1.88"
+  },
+  "FileWriteTool/prompt.ts:6-7": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "function getPreReadInstruction(): string { return `\\n- If this is an existing file, you MUST use the ${FILE_READ_TOOL_NAME} tool first to read the file's contents. This tool will fail if you did not read the file first.`",
+   "fingerprint": "a2f33863b61d6c38",
+   "version": "claude-code-2.1.88"
+  },
+  "GrepTool.ts:108-108": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "const DEFAULT_HEAD_LIMIT = 250",
+   "fingerprint": "5fa5250f1035f429",
+   "version": "claude-code-2.1.88"
+  },
+  "GrepTool.ts:164-164": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "maxResultSizeChars: 20_000,",
+   "fingerprint": "48d8c264c1bf6b27",
+   "version": "claude-code-2.1.88"
+  },
+  "SkillTool.ts:451-467": {
+   "doc": "skills/agent-creator/references/13-permission-and-consent.md",
+   "excerpt": "const ruleMatches = (ruleContent: string): boolean => { // Normalize rule content by stripping leading slash const normalizedRule = ruleContent.startsWith('/') ? ruleContent.substring(1) : ruleContent // Check exact match (using normalized commandName) if (normalizedRule === commandName) { return true } // Check prefix match (e.g., \"review:*\" matches \"review-pr 123\") if (normalizedRule.endsWith(':\u2026",
+   "fingerprint": "95afa748bbabc288",
+   "version": "claude-code-2.1.88"
+  },
+  "TaskOutputTool.tsx:150-150": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "aliases: ['AgentOutputTool', 'BashOutputTool'],",
+   "fingerprint": "2c16939f3cfcf107",
+   "version": "claude-code-2.1.88"
+  },
+  "TodoWriteTool/prompt.ts:17-25": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "## When NOT to Use This Tool Skip using this tool when: 1. There is only a single, straightforward task 2. The task is trivial and tracking it provides no organizational benefit 3. The task can be completed in less than 3 trivial steps 4. The task is purely conversational or informational NOTE that you should not use this tool if there is only one trivial task to do. In this case you are better of\u2026",
+   "fingerprint": "eb81c0e3abbb0909",
+   "version": "claude-code-2.1.88"
+  },
+  "Tool.ts:362-562": {
+   "doc": "skills/agent-creator/references/02-tools.md",
+   "excerpt": "export type Tool< Input extends AnyObject = AnyObject, Output = unknown, P extends ToolProgressData = ToolProgressData, > = { /** * Optional aliases for backwards compatibility when a tool is renamed. * The tool can be looked up by any of these names in addition to its primary name. */ aliases?: string[] /** * One-line capability phrase used by ToolSearch for keyword matching. * Helps the model fi\u2026",
+   "fingerprint": "a445286377968bba",
+   "version": "claude-code-2.1.88"
+  },
+  "Tool.ts:402-437": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "isConcurrencySafe(input: z.infer<Input>): boolean isEnabled(): boolean isReadOnly(input: z.infer<Input>): boolean /** Defaults to false. Only set when the tool performs irreversible operations (delete, overwrite, send). */ isDestructive?(input: z.infer<Input>): boolean /** * What should happen when the user submits a new message while this tool * is running. * * - `'cancel'` \u2014 stop the tool and di\u2026",
+   "fingerprint": "de5d9af4f39ecc98",
+   "version": "claude-code-2.1.88"
+  },
+  "Tool.ts:443-449": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "/** * When true, this tool is never deferred \u2014 its full schema appears in the * initial prompt even when ToolSearch is enabled. For MCP tools, set via * `_meta['anthropic/alwaysLoad']`. Use for tools the model must see on * turn 1 without a ToolSearch round-trip. */ readonly alwaysLoad?: boolean",
+   "fingerprint": "1d209d21662080d1",
+   "version": "claude-code-2.1.88"
+  },
+  "Tool.ts:457-466": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "/** * Maximum size in characters for tool result before it gets persisted to disk. * When exceeded, the result is saved to a file and Claude receives a preview * with the file path instead of the full content. * * Set to Infinity for tools whose output must never be persisted (e.g. Read, * where persisting creates a circular Read\u2192file\u2192Read loop and the tool * already self-bounds via its own limits\u2026",
+   "fingerprint": "34cd2336346157fb",
+   "version": "claude-code-2.1.88"
+  },
+  "Tool.ts:474-481": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "/** * Called on copies of tool_use input before observers see it (SDK stream, * transcript, canUseTool, PreToolUse/PostToolUse hooks). Mutate in place * to add legacy/derived fields. Must be idempotent. The original API-bound * input is never mutated (preserves prompt cache). Not re-applied when a * hook/permission returns a fresh updatedInput \u2014 those own their shape. */ backfillObservableInput?(i\u2026",
+   "fingerprint": "25f96ab2d40cb843",
+   "version": "claude-code-2.1.88"
+  },
+  "Tool.ts:528-533": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "/** * Transparent wrappers (e.g. REPL) delegate all rendering to their progress * handler, which emits native-looking blocks for each inner tool call. * The wrapper itself shows nothing. */ isTransparentWrapper?(): boolean",
+   "fingerprint": "da13679e694642bd",
+   "version": "claude-code-2.1.88"
+  },
+  "Tool.ts:561-566": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "/** * Optional. When omitted, the tool result renders nothing (same as returning * null). Omit for tools whose results are surfaced elsewhere (e.g., TodoWrite * updates the todo panel, not the transcript). */ renderToolResultMessage?(",
+   "fingerprint": "10ea60f18bdf156a",
+   "version": "claude-code-2.1.88"
+  },
+  "Tool.ts:757-769": {
+   "doc": "skills/agent-creator/references/02-tools.md",
+   "excerpt": "const TOOL_DEFAULTS = { isEnabled: () => true, isConcurrencySafe: (_input?: unknown) => false, isReadOnly: (_input?: unknown) => false, isDestructive: (_input?: unknown) => false, checkPermissions: ( input: { [key: string]: unknown }, _ctx?: ToolUseContext, ): Promise<PermissionResult> => Promise.resolve({ behavior: 'allow', updatedInput: input }), toAutoClassifierInput: (_input?: unknown) => '', \u2026",
+   "fingerprint": "2bfc46bd086d8ca4",
+   "version": "claude-code-2.1.88"
+  },
+  "Tool.ts:757-792": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "const TOOL_DEFAULTS = { isEnabled: () => true, isConcurrencySafe: (_input?: unknown) => false, isReadOnly: (_input?: unknown) => false, isDestructive: (_input?: unknown) => false, checkPermissions: ( input: { [key: string]: unknown }, _ctx?: ToolUseContext, ): Promise<PermissionResult> => Promise.resolve({ behavior: 'allow', updatedInput: input }), toAutoClassifierInput: (_input?: unknown) => '', \u2026",
+   "fingerprint": "a944d26e7475e45e",
+   "version": "claude-code-2.1.88"
+  },
+  "Tool.ts:762-766": {
+   "doc": "skills/agent-creator/references/13-permission-and-consent.md",
+   "excerpt": "checkPermissions: ( input: { [key: string]: unknown }, _ctx?: ToolUseContext, ): Promise<PermissionResult> => Promise.resolve({ behavior: 'allow', updatedInput: input }),",
+   "fingerprint": "7cda524c02cee7db",
+   "version": "claude-code-2.1.88"
+  },
+  "Tool.ts:783-792": {
+   "doc": "skills/agent-creator/references/02-tools.md",
+   "excerpt": "export function buildTool<D extends AnyToolDef>(def: D): BuiltTool<D> { // The runtime spread is straightforward; the `as` bridges the gap between // the structural-any constraint and the precise BuiltTool<D> return. The // type semantics are proven by the 0-error typecheck across all 60+ tools. return { ...TOOL_DEFAULTS, userFacingName: () => def.name, ...def, } as BuiltTool<D> }",
+   "fingerprint": "0d7ba0b8c955e670",
+   "version": "claude-code-2.1.88"
+  },
+  "ToolSearchTool/prompt.ts:110-117": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "/** * Format one deferred-tool line for the <available-deferred-tools> user * message. Search hints (tool.searchHint) are not rendered \u2014 the * hints A/B (exp_xenhnnmn0smrx4, stopped Mar 21) showed no benefit. */ export function formatDeferredToolLine(tool: Tool): string { return tool.name }",
+   "fingerprint": "8effee1e566057ff",
+   "version": "claude-code-2.1.88"
+  },
+  "ToolSearchTool/prompt.ts:62-108": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "export function isDeferredTool(tool: Tool): boolean { // Explicit opt-out via _meta['anthropic/alwaysLoad'] \u2014 tool appears in the // initial prompt with full schema. Checked first so MCP tools can opt out. if (tool.alwaysLoad === true) return false // MCP tools are always deferred (workflow-specific) if (tool.isMcp === true) return true // Never defer ToolSearch itself \u2014 the model needs it to load\u2026",
+   "fingerprint": "d3c037c6f7718ea7",
+   "version": "claude-code-2.1.88"
+  },
+  "ToolSearchTool/prompt.ts:83-94": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "// Brief is the primary communication channel whenever the tool is present. // Its prompt contains the text-visibility contract, which the model must // see without a ToolSearch round-trip. No runtime gate needed here: this // tool's isEnabled() IS isBriefEnabled(), so being asked about its deferral // status implies the gate already passed. if ( (feature('KAIROS') || feature('KAIROS_BRIEF')) && B\u2026",
+   "fingerprint": "e86a7076510048f5",
+   "version": "claude-code-2.1.88"
+  },
+  "autoCompact.ts:30-30": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "const MAX_OUTPUT_TOKENS_FOR_SUMMARY = 20_000",
+   "fingerprint": "fbf0eb3855adb7ad",
+   "version": "claude-code-2.1.88"
+  },
+  "autoCompact.ts:63-64": {
+   "doc": "skills/agent-creator/references/05-providers.md",
+   "excerpt": "export const WARNING_THRESHOLD_BUFFER_TOKENS = 20_000 export const ERROR_THRESHOLD_BUFFER_TOKENS = 20_000",
+   "fingerprint": "5bcc474d7ed33d1d",
+   "version": "claude-code-2.1.88"
+  },
+  "autoCompact.ts:70-70": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "const MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES = 3",
+   "fingerprint": "97ae4710bde0a9bc",
+   "version": "claude-code-2.1.88"
+  },
+  "constants/prompts.ts:105-115": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "/** * Boundary marker separating static (cross-org cacheable) content from dynamic content. * Everything BEFORE this marker in the system prompt array can use scope: 'global'. * Everything AFTER contains user/session-specific content and should not be cached. * * WARNING: Do not remove or reorder this marker without updating cache logic in: * - src/utils/api.ts (splitSysPromptPrefix) * - src/servi\u2026",
+   "fingerprint": "263f70353574eb84",
+   "version": "claude-code-2.1.88"
+  },
+  "constants/prompts.ts:127-129": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "function getHooksSection(): string { return `Users may configure 'hooks', shell commands that execute in response to events like tool calls, in settings. Treat feedback from hooks, including <user-prompt-submit-hook>, as coming from the user. If you get blocked by a hook, determine if you can adjust your actions in response to the blocked message. If not, ask the user to check their hooks configur\u2026",
+   "fingerprint": "650309b77cbc4934",
+   "version": "claude-code-2.1.88"
+  },
+  "constants/systemPromptSections.ts:16-38": {
+   "doc": "skills/agent-creator/references/06-prompts.md",
+   "excerpt": "/** * Create a memoized system prompt section. * Computed once, cached until /clear or /compact. */ export function systemPromptSection( name: string, compute: ComputeFn, ): SystemPromptSection { return { name, compute, cacheBreak: false } } /** * Create a volatile system prompt section that recomputes every turn. * This WILL break the prompt cache when the value changes. * Requires a reason expla\u2026",
+   "fingerprint": "15bb28f8504cac25",
+   "version": "claude-code-2.1.88"
+  },
+  "constants/systemPromptSections.ts:32-38": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export function DANGEROUS_uncachedSystemPromptSection( name: string, compute: ComputeFn, _reason: string, ): SystemPromptSection { return { name, compute, cacheBreak: true } }",
+   "fingerprint": "37d21d668425ecad",
+   "version": "claude-code-2.1.88"
+  },
+  "constants/toolLimits.ts:13-13": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export const DEFAULT_MAX_RESULT_SIZE_CHARS = 50_000",
+   "fingerprint": "512ab6dcf74c6b79",
+   "version": "claude-code-2.1.88"
+  },
+  "constants/toolLimits.ts:22-22": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export const MAX_TOOL_RESULT_TOKENS = 100_000",
+   "fingerprint": "297c7eece92c54d4",
+   "version": "claude-code-2.1.88"
+  },
+  "constants/toolLimits.ts:49-49": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export const MAX_TOOL_RESULTS_PER_MESSAGE_CHARS = 200_000",
+   "fingerprint": "29e67267ca9de8ea",
+   "version": "claude-code-2.1.88"
+  },
+  "constants/tools.ts:36-112": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export const ALL_AGENT_DISALLOWED_TOOLS = new Set([ TASK_OUTPUT_TOOL_NAME, EXIT_PLAN_MODE_V2_TOOL_NAME, ENTER_PLAN_MODE_TOOL_NAME, // Allow Agent tool for agents when user is ant (enables nested agents) ...(process.env.USER_TYPE === 'ant' ? [] : [AGENT_TOOL_NAME]), ASK_USER_QUESTION_TOOL_NAME, TASK_STOP_TOOL_NAME, // Prevent recursive workflow execution inside subagents. ...(feature('WORKFLOW_SCRI\u2026",
+   "fingerprint": "37fd488521adaec1",
+   "version": "claude-code-2.1.88"
+  },
+  "constants/tools.ts:77-88": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "export const IN_PROCESS_TEAMMATE_ALLOWED_TOOLS = new Set([ TASK_CREATE_TOOL_NAME, TASK_GET_TOOL_NAME, TASK_LIST_TOOL_NAME, TASK_UPDATE_TOOL_NAME, SEND_MESSAGE_TOOL_NAME, // Teammate-created crons are tagged with the creating agentId and routed to // that teammate's pendingUserMessages queue (see useScheduledTasks.ts). ...(feature('AGENT_TRIGGERS') ? [CRON_CREATE_TOOL_NAME, CRON_DELETE_TOOL_NAME, C\u2026",
+   "fingerprint": "4e0b8cd99929480e",
+   "version": "claude-code-2.1.88"
+  },
+  "cost-tracker.ts:228-233": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export function formatTotalCost(): string { const costDisplay = formatCost(getTotalCostUSD()) + (hasUnknownModelCost() ? ' (costs may be inaccurate due to usage of unknown models)' : '')",
+   "fingerprint": "4963e82a2f6eeac0",
+   "version": "claude-code-2.1.88"
+  },
+  "cost-tracker.ts:71-79": {
+   "doc": "skills/agent-creator/references/07-cost-guardrails.md",
+   "excerpt": "type StoredCostState = { totalCostUSD: number totalAPIDuration: number totalAPIDurationWithoutRetries: number totalToolDuration: number totalLinesAdded: number totalLinesRemoved: number lastDuration: number | undefined modelUsage: { [modelName: string]: ModelUsage } | undefined",
+   "fingerprint": "728d92d8038b84e1",
+   "version": "claude-code-2.1.88"
+  },
+  "entrypoints/sdk/coreSchemas.ts:355-383": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export const HOOK_EVENTS = [ 'PreToolUse', 'PostToolUse', 'PostToolUseFailure', 'Notification', 'UserPromptSubmit', 'SessionStart', 'SessionEnd', 'Stop', 'StopFailure', 'SubagentStart', 'SubagentStop', 'PreCompact', 'PostCompact', 'PermissionRequest', 'PermissionDenied', 'Setup', 'TeammateIdle', 'TaskCreated', 'TaskCompleted', 'Elicitation', 'ElicitationResult', 'ConfigChange', 'WorktreeCreate', '\u2026",
+   "fingerprint": "50be0fc179003dbf",
+   "version": "claude-code-2.1.88"
+  },
+  "findRelevantMemories.ts:23-23": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "- If a list of recently-used tools is provided, do not select memories that are usage reference or API documentation for those tools (Claude Code is already exercising them). DO still select memories containing warnings, gotchas, or known issues about those tools \u2014 active use is exactly when those matter.",
+   "fingerprint": "68ec6b1736811c68",
+   "version": "claude-code-2.1.88"
+  },
+  "findRelevantMemories.ts:35-48": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "* `alreadySurfaced` filters paths shown in prior turns before the * Sonnet call, so the selector spends its 5-slot budget on fresh * candidates instead of re-picking files the caller will discard. */ export async function findRelevantMemories( query: string, memoryDir: string, signal: AbortSignal, recentTools: readonly string[] = [], alreadySurfaced: ReadonlySet<string> = new Set(), ): Promise<Rel\u2026",
+   "fingerprint": "17c7531436632c42",
+   "version": "claude-code-2.1.88"
+  },
+  "limits.ts:18-18": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "export const DEFAULT_MAX_OUTPUT_TOKENS = 25000",
+   "fingerprint": "0eb0652f01842c10",
+   "version": "claude-code-2.1.88"
+  },
+  "loadAgentsDir.ts:128-132": {
+   "doc": "skills/agent-creator/references/09-orchestration.md",
+   "excerpt": "/** Omit CLAUDE.md hierarchy from the agent's userContext. Read-only agents * (Explore, Plan) don't need commit/PR/lint guidelines \u2014 the main agent has * full CLAUDE.md and interprets their output. Saves ~5-15 Gtok/week across * 34M+ Explore spawns. Kill-switch: tengu_slim_subagent_claudemd. */ omitClaudeMd?: boolean",
+   "fingerprint": "dc8df4feaffa340d",
+   "version": "claude-code-2.1.88"
+  },
+  "loadAgentsDir.ts:193-216": {
+   "doc": "skills/agent-creator/references/09-orchestration.md",
+   "excerpt": "export function getActiveAgentsFromList( allAgents: AgentDefinition[], ): AgentDefinition[] { const builtInAgents = allAgents.filter(a => a.source === 'built-in') const pluginAgents = allAgents.filter(a => a.source === 'plugin') const userAgents = allAgents.filter(a => a.source === 'userSettings') const projectAgents = allAgents.filter(a => a.source === 'projectSettings') const managedAgents = all\u2026",
+   "fingerprint": "7f449dc2b126a9b5",
+   "version": "claude-code-2.1.88"
+  },
+  "memdir.ts:36-37": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "// ~125 chars/line at 200 lines. At p97 today; catches long-line indexes that // slip past the line cap (p100 observed: 197KB under 200 lines).",
+   "fingerprint": "a0c41b6b8d927bae",
+   "version": "claude-code-2.1.88"
+  },
+  "memdir.ts:49-57": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "/** * Truncate MEMORY.md content to the line AND byte caps, appending a warning * that names which cap fired. Line-truncates first (natural boundary), then * byte-truncates at the last newline before the cap so we don't cut mid-line. * * Shared by buildMemoryPrompt and claudemd getMemoryFiles (previously * duplicated the line-only logic). */ export function truncateEntrypointContent(raw: string): \u2026",
+   "fingerprint": "bea592c1fdf102ec",
+   "version": "claude-code-2.1.88"
+  },
+  "memdir/findRelevantMemories.ts:18-24": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "const SELECT_MEMORIES_SYSTEM_PROMPT = `You are selecting memories that will be useful to Claude Code as it processes a user's query. You will be given the user's query and a list of available memory files with their filenames and descriptions. Return a list of filenames for the memories that will clearly be useful to Claude Code as it processes the user's query (up to 5). Only include memories tha\u2026",
+   "fingerprint": "a72b3b3437b60860",
+   "version": "claude-code-2.1.88"
+  },
+  "memdir/findRelevantMemories.ts:20-20": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "Return a list of filenames for the memories that will clearly be useful to Claude Code as it processes the user's query (up to 5). Only include memories that you are certain will be helpful based on their name and description.",
+   "fingerprint": "7d8092627623e2ca",
+   "version": "claude-code-2.1.88"
+  },
+  "memdir/memdir.ts:34-38": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "export const ENTRYPOINT_NAME = 'MEMORY.md' export const MAX_ENTRYPOINT_LINES = 200 // ~125 chars/line at 200 lines. At p97 today; catches long-line indexes that // slip past the line cap (p100 observed: 197KB under 200 lines). export const MAX_ENTRYPOINT_BYTES = 25_000",
+   "fingerprint": "3f53b53c90a23601",
+   "version": "claude-code-2.1.88"
+  },
+  "memdir/memoryAge.ts:10-14": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "/** * Human-readable age string. Models are poor at date arithmetic \u2014 * a raw ISO timestamp doesn't trigger staleness reasoning the way * \"47 days ago\" does. */",
+   "fingerprint": "6c4b89cfbf4bb337",
+   "version": "claude-code-2.1.88"
+  },
+  "memdir/memoryAge.ts:33-41": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export function memoryFreshnessText(mtimeMs: number): string { const d = memoryAgeDays(mtimeMs) if (d <= 1) return '' return ( `This memory is ${d} days old. ` + `Memories are point-in-time observations, not live state \u2014 ` + `claims about code behavior or file:line citations may be outdated. ` + `Verify against current code before asserting as fact.` )",
+   "fingerprint": "553ca04bba724def",
+   "version": "claude-code-2.1.88"
+  },
+  "memdir/memoryAge.ts:35-35": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "if (d <= 1) return ''",
+   "fingerprint": "547cf10c81c6ea5d",
+   "version": "claude-code-2.1.88"
+  },
+  "memdir/memoryScan.ts:84-93": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "export function formatMemoryManifest(memories: MemoryHeader[]): string { return memories .map(m => { const tag = m.type ? `[${m.type}] ` : '' const ts = new Date(m.mtimeMs).toISOString() return m.description ? `- ${tag}${m.filename} (${ts}): ${m.description}` : `- ${tag}${m.filename} (${ts})` }) .join('\\n')",
+   "fingerprint": "d1daeb5acbe53888",
+   "version": "claude-code-2.1.88"
+  },
+  "memdir/memoryTypes.ts:1-12": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "/** * Memory type taxonomy. * * Memories are constrained to four types capturing context NOT derivable * from the current project state. Code patterns, architecture, git history, * and file structure are derivable (via grep/git/CLAUDE.md) and should NOT * be saved as memories. * * The two TYPES_SECTION_* exports below are intentionally duplicated rather * than generated from a shared spec \u2014 keepin\u2026",
+   "fingerprint": "e033f17177822dd0",
+   "version": "claude-code-2.1.88"
+  },
+  "memdir/memoryTypes.ts:14-19": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "export const MEMORY_TYPES = [ 'user', 'feedback', 'project', 'reference', ] as const",
+   "fingerprint": "3bb97bda17af79c1",
+   "version": "claude-code-2.1.88"
+  },
+  "memdir/memoryTypes.ts:60-60": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "\" <description>Guidance the user has given you about how to approach work \u2014 both what to avoid and what to keep doing. These are a very important type of memory to read and write as they allow you to remain coherent and responsive to the way you should approach work in the project. Record from failure AND success: if you only save corrections, you will avoid past mistakes but drift away from appro\u2026",
+   "fingerprint": "e98975ff272f4ffc",
+   "version": "claude-code-2.1.88"
+  },
+  "memoryAge.ts:29-31": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "* Motivated by user reports of stale code-state memories (file:line * citations to code that has since changed) being asserted as fact \u2014 * the citation makes the stale claim sound more authoritative, not less.",
+   "fingerprint": "02d1924bad643442",
+   "version": "claude-code-2.1.88"
+  },
+  "memoryAge.ts:33-41": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "export function memoryFreshnessText(mtimeMs: number): string { const d = memoryAgeDays(mtimeMs) if (d <= 1) return '' return ( `This memory is ${d} days old. ` + `Memories are point-in-time observations, not live state \u2014 ` + `claims about code behavior or file:line citations may be outdated. ` + `Verify against current code before asserting as fact.` )",
+   "fingerprint": "553ca04bba724def",
+   "version": "claude-code-2.1.88"
+  },
+  "memoryTypes.ts:40-77": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "'There are several discrete types of memory that you can store in your memory system. Each type below declares a <scope> of `private`, `team`, or guidance for choosing between the two.', '', '<types>', '<type>', ' <name>user</name>', ' <scope>always private</scope>', \" <description>Contain information about the user's role, goals, responsibilities, and knowledge. Great user memories help you tailo\u2026",
+   "fingerprint": "7d1d7b0dac5c537d",
+   "version": "claude-code-2.1.88"
+  },
+  "memoryTypes.ts:43-90": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "'<type>', ' <name>user</name>', ' <scope>always private</scope>', \" <description>Contain information about the user's role, goals, responsibilities, and knowledge. Great user memories help you tailor your future behavior to the user's preferences and perspective. Your goal in reading and writing these memories is to build up an understanding of who the user is and how you can be most helpful to th\u2026",
+   "fingerprint": "38c3c4e2ee74c6da",
+   "version": "claude-code-2.1.88"
+  },
+  "memoryTypes.ts:60-60": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "\" <description>Guidance the user has given you about how to approach work \u2014 both what to avoid and what to keep doing. These are a very important type of memory to read and write as they allow you to remain coherent and responsive to the way you should approach work in the project. Record from failure AND success: if you only save corrections, you will avoid past mistakes but drift away from appro\u2026",
+   "fingerprint": "e98975ff272f4ffc",
+   "version": "claude-code-2.1.88"
+  },
+  "memoryTypes.ts:63-63": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "' <body_structure>Lead with the rule itself, then a **Why:** line (the reason the user gave \u2014 often a past incident or strong preference) and a **How to apply:** line (when/where this guidance kicks in). Knowing *why* lets you judge edge cases instead of blindly following the rule.</body_structure>',",
+   "fingerprint": "11a94360a9851910",
+   "version": "claude-code-2.1.88"
+  },
+  "memoryTypes.ts:79-79": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "' <when_to_save>When you learn who is doing what, why, or by when. These states change relatively quickly so try to keep your understanding of this up to date. Always convert relative dates in user messages to absolute dates when saving (e.g., \"Thursday\" \u2192 \"2026-03-05\"), so the memory remains interpretable after time passes.</when_to_save>',",
+   "fingerprint": "f70d2d69cc9a3e61",
+   "version": "claude-code-2.1.88"
+  },
+  "planModeV2.ts:9-9": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "if (!isNaN(count) && count > 0 && count <= 10) {",
+   "fingerprint": "2d4aac324d0c3567",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:1062-1062": {
+   "doc": "skills/agent-creator/references/01-agent-loop.md",
+   "excerpt": "if (!needsFollowUp) {",
+   "fingerprint": "a1eb4a002fd3b96d",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:1074-1084": {
+   "doc": "skills/agent-creator/references/05-providers.md",
+   "excerpt": "// Media-size rejections (image/PDF/many-image) are recoverable via // reactive compact's strip-retry. Unlike PTL, media errors skip the // collapse drain \u2014 collapse doesn't strip images. mediaRecoveryEnabled // is the hoisted gate from before the stream loop (same value as the // withholding check \u2014 these two must agree or a withheld message is // lost). If the oversized media is in the preserved\u2026",
+   "fingerprint": "2ec0103f3d613854",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:1085-1183": {
+   "doc": "skills/agent-creator/references/05-providers.md",
+   "excerpt": "if (isWithheld413) { // First: drain all staged context-collapses. Gated on the PREVIOUS // transition not being collapse_drain_retry \u2014 if we already drained // and the retry still 413'd, fall through to reactive compact. if ( feature('CONTEXT_COLLAPSE') && contextCollapse && state.transition?.reason !== 'collapse_drain_retry' ) { const drained = contextCollapse.recoverFromOverflow( messagesForQue\u2026",
+   "fingerprint": "30a729e516ba9769",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:1085-1252": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "if (isWithheld413) { // First: drain all staged context-collapses. Gated on the PREVIOUS // transition not being collapse_drain_retry \u2014 if we already drained // and the retry still 413'd, fall through to reactive compact. if ( feature('CONTEXT_COLLAPSE') && contextCollapse && state.transition?.reason !== 'collapse_drain_retry' ) { const drained = contextCollapse.recoverFromOverflow( messagesForQue\u2026",
+   "fingerprint": "f660ed6a9ff97477",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:1188-1221": {
+   "doc": "skills/agent-creator/references/01-agent-loop.md",
+   "excerpt": "if (isWithheldMaxOutputTokens(lastMessage)) { // Escalating retry: if we used the capped 8k default and hit the // limit, retry the SAME request at 64k \u2014 no meta message, no // multi-turn dance. This fires once per turn (guarded by the // override check), then falls through to multi-turn recovery if // 64k also hits the cap. // 3P default: false (not validated on Bedrock/Vertex) const capEnabled =\u2026",
+   "fingerprint": "d234c247a0da9aee",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:1258-1265": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "// Skip stop hooks when the last message is an API error (rate limit, // prompt-too-long, auth failure, etc.). The model never produced a // real response \u2014 hooks evaluating it create a death spiral: // error \u2192 hook blocking \u2192 retry \u2192 error \u2192 \u2026 if (lastMessage?.isApiErrorMessage) { void executeStopFailureHooks(lastMessage, toolUseContext) return { reason: 'completed' } }",
+   "fingerprint": "97e3f26edc49b97b",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:1267-1306": {
+   "doc": "skills/agent-creator/references/03-evaluator-verifier.md",
+   "excerpt": "const stopHookResult = yield* handleStopHooks( messagesForQuery, assistantMessages, systemPrompt, userContext, systemContext, toolUseContext, querySource, stopHookActive, ) if (stopHookResult.preventContinuation) { return { reason: 'stop_hook_prevented' } } if (stopHookResult.blockingErrors.length > 0) { const next: State = { messages: [ ...messagesForQuery, ...assistantMessages, ...stopHookResult\u2026",
+   "fingerprint": "9f2acf4a7d6176cd",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:1282-1306": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "if (stopHookResult.blockingErrors.length > 0) { const next: State = { messages: [ ...messagesForQuery, ...assistantMessages, ...stopHookResult.blockingErrors, ], toolUseContext, autoCompactTracking: tracking, maxOutputTokensRecoveryCount: 0, // Preserve the reactive compact guard \u2014 if compact already ran and // couldn't recover from prompt-too-long, retrying after a stop-hook // blocking error wil\u2026",
+   "fingerprint": "e184dc8508cfd942",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:1292-1297": {
+   "doc": "skills/agent-creator/references/01-agent-loop.md",
+   "excerpt": "// Preserve the reactive compact guard \u2014 if compact already ran and // couldn't recover from prompt-too-long, retrying after a stop-hook // blocking error will produce the same result. Resetting to false // here caused an infinite loop: compact \u2192 still too long \u2192 error \u2192 // stop hook blocking \u2192 compact \u2192 \u2026 burning thousands of API calls. hasAttemptedReactiveCompact,",
+   "fingerprint": "436ae56b6f3c0409",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:1308-1355": {
+   "doc": "skills/agent-creator/references/07-cost-guardrails.md",
+   "excerpt": "if (feature('TOKEN_BUDGET')) { const decision = checkTokenBudget( budgetTracker!, toolUseContext.agentId, getCurrentTurnTokenBudget(), getTurnOutputTokens(), ) if (decision.action === 'continue') { incrementBudgetContinuationCount() logForDebugging( `Token budget continuation #${decision.continuationCount}: ${decision.pct}% (${decision.turnTokens.toLocaleString()} / ${decision.budget.toLocaleStrin\u2026",
+   "fingerprint": "318b005d4a835de6",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:1560-1578": {
+   "doc": "skills/agent-creator/references/09-orchestration.md",
+   "excerpt": "// Agent scoping: the queue is a process-global singleton shared by the // coordinator and all in-process subagents. Each loop drains only what's // addressed to it \u2014 main thread drains agentId===undefined, subagents // drain their own agentId. User prompts (mode:'prompt') still go to main // only; subagents never see the prompt stream. // eslint-disable-next-line custom-rules/require-tool-match-n\u2026",
+   "fingerprint": "160618c0c18f7823",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:164-164": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "const MAX_OUTPUT_TOKENS_RECOVERY_LIMIT = 3",
+   "fingerprint": "33cc86f727f043a5",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:166-172": {
+   "doc": "skills/agent-creator/references/01-agent-loop.md",
+   "excerpt": "/** * Is this a max_output_tokens error message? If so, the streaming loop should * withhold it from SDK callers until we know whether the recovery loop can * continue. Yielding early leaks an intermediate error to SDK callers (e.g. * cowork/desktop) that terminate the session on any `error` field \u2014 the * recovery loop keeps running but nobody is listening. *",
+   "fingerprint": "da454effa7eec3c2",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:204-217": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "type State = { messages: Message[] toolUseContext: ToolUseContext autoCompactTracking: AutoCompactTrackingState | undefined maxOutputTokensRecoveryCount: number hasAttemptedReactiveCompact: boolean maxOutputTokensOverride: number | undefined pendingToolUseSummary: Promise<ToolUseSummaryMessage | null> | undefined stopHookActive: boolean | undefined turnCount: number // Why the previous iteration c\u2026",
+   "fingerprint": "2005d076537d7c5b",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:214-216": {
+   "doc": "skills/agent-creator/references/01-agent-loop.md",
+   "excerpt": "// Why the previous iteration continued. Undefined on first iteration. // Lets tests assert recovery paths fired without inspecting message contents. transition: Continue | undefined",
+   "fingerprint": "469f4481cc03cd57",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:282-291": {
+   "doc": "skills/agent-creator/references/07-cost-guardrails.md",
+   "excerpt": "// task_budget.remaining tracking across compaction boundaries. Undefined // until first compact fires \u2014 while context is uncompacted the server can // see the full history and handles the countdown from {total} itself (see // api/api/sampling/prompt/renderer.py:292). After a compact, the server sees // only the summary and would under-count spend; remaining tells it the // pre-compact final windo\u2026",
+   "fingerprint": "e176806af2d1b2d5",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:365-467": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "let messagesForQuery = [...getMessagesAfterCompactBoundary(messages)] let tracking = autoCompactTracking // Enforce per-message budget on aggregate tool result size. Runs BEFORE // microcompact \u2014 cached MC operates purely by tool_use_id (never inspects // content), so content replacement is invisible to it and the two compose // cleanly. No-ops when contentReplacementState is undefined (feature of\u2026",
+   "fingerprint": "5d29e0d0c8987eed",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:369-394": {
+   "doc": "skills/agent-creator/references/05-providers.md",
+   "excerpt": "// Enforce per-message budget on aggregate tool result size. Runs BEFORE // microcompact \u2014 cached MC operates purely by tool_use_id (never inspects // content), so content replacement is invisible to it and the two compose // cleanly. No-ops when contentReplacementState is undefined (feature off). // Persist only for querySources that read records back on resume: agentId // routes to sidechain fil\u2026",
+   "fingerprint": "0f68308ff76760bf",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:400-410": {
+   "doc": "skills/agent-creator/references/05-providers.md",
+   "excerpt": "let snipTokensFreed = 0 if (feature('HISTORY_SNIP')) { queryCheckpoint('query_snip_start') const snipResult = snipModule!.snipCompactIfNeeded(messagesForQuery) messagesForQuery = snipResult.messages snipTokensFreed = snipResult.tokensFreed if (snipResult.boundaryMessage) { yield snipResult.boundaryMessage } queryCheckpoint('query_snip_end') }",
+   "fingerprint": "2642ee2e42ba5f9e",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:428-447": {
+   "doc": "skills/agent-creator/references/05-providers.md",
+   "excerpt": "// Project the collapsed context view and maybe commit more collapses. // Runs BEFORE autocompact so that if collapse gets us under the // autocompact threshold, autocompact is a no-op and we keep granular // context instead of a single summary. // // Nothing is yielded \u2014 the collapsed view is a read-time projection // over the REPL's full history. Summary messages live in the collapse // store, n\u2026",
+   "fingerprint": "6549eb61c580a6c2",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:646-846": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "return { reason: 'blocking_limit' } } } let attemptWithFallback = true queryCheckpoint('query_api_loop_start') try { while (attemptWithFallback) { attemptWithFallback = false try { let streamingFallbackOccured = false queryCheckpoint('query_api_streaming_start') for await (const message of deps.callModel({ messages: prependUserContext(messagesForQuery, userContext), systemPrompt: fullSystemPrompt,\u2026",
+   "fingerprint": "bca553518cfd0ee1",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:712-741": {
+   "doc": "skills/agent-creator/references/01-agent-loop.md",
+   "excerpt": "if (streamingFallbackOccured) { // Yield tombstones for orphaned messages so they're removed from UI and transcript. // These partial messages (especially thinking blocks) have invalid signatures // that would cause \"thinking blocks cannot be modified\" API errors. for (const msg of assistantMessages) { yield { type: 'tombstone' as const, message: msg } } logEvent('tengu_orphaned_messages_tombstone\u2026",
+   "fingerprint": "cd26988c3c1524e4",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:788-825": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "// Withhold recoverable errors (prompt-too-long, max-output-tokens) // until we know whether recovery (collapse drain / reactive // compact / truncation retry) can succeed. Still pushed to // assistantMessages so the recovery checks below find them. // Either subsystem's withhold is sufficient \u2014 they're // independent so turning one off doesn't break the other's // recovery path. // // feature() o\u2026",
+   "fingerprint": "24618a3508855d53",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:837-862": {
+   "doc": "skills/agent-creator/references/01-agent-loop.md",
+   "excerpt": "if ( streamingToolExecutor && !toolUseContext.abortController.signal.aborted ) { for (const toolBlock of msgToolUseBlocks) { streamingToolExecutor.addTool(toolBlock, message) } } } if ( streamingToolExecutor && !toolUseContext.abortController.signal.aborted ) { for (const result of streamingToolExecutor.getCompletedResults()) { if (result.message) { yield result.message toolResults.push( ...normal\u2026",
+   "fingerprint": "27c67c62ba3b7f53",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:894-950": {
+   "doc": "skills/agent-creator/references/05-providers.md",
+   "excerpt": "if (innerError instanceof FallbackTriggeredError && fallbackModel) { // Fallback was triggered - switch model and retry currentModel = fallbackModel attemptWithFallback = true // Clear assistant messages since we'll retry the entire request yield* yieldMissingToolResultBlocks( assistantMessages, 'Model fallback triggered', ) assistantMessages.length = 0 toolResults.length = 0 toolUseBlocks.length \u2026",
+   "fingerprint": "49edc17d5c580d7a",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:924-926": {
+   "doc": "skills/agent-creator/references/05-providers.md",
+   "excerpt": "// Thinking signatures are model-bound: replaying a protected-thinking // block (e.g. capybara) to an unprotected fallback (e.g. opus) 400s. // Strip before retry so the fallback model gets clean history.",
+   "fingerprint": "637fda5b191cd4be",
+   "version": "claude-code-2.1.88"
+  },
+  "query.ts:927-927": {
+   "doc": "skills/agent-creator/references/05-providers.md",
+   "excerpt": "if (process.env.USER_TYPE === 'ant') {",
+   "fingerprint": "64348adf568b2c5b",
+   "version": "claude-code-2.1.88"
+  },
+  "runAgent.ts:297-300": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "/** Tool permission rules to add to the agent's session allow rules. * When provided, replaces ALL allow rules so the agent only has what's * explicitly listed (parent approvals don't leak through). */ allowedTools?: string[]",
+   "fingerprint": "04e35d88b139c7a5",
+   "version": "claude-code-2.1.88"
+  },
+  "runAgent.ts:315-317": {
+   "doc": "skills/agent-creator/references/09-orchestration.md",
+   "excerpt": "/** Worktree path if the agent was spawned with isolation: \"worktree\". * Persisted to metadata so resume can restore the correct cwd. */ worktreePath?: string",
+   "fingerprint": "79c69096f0705b51",
+   "version": "claude-code-2.1.88"
+  },
+  "sandbox-adapter.ts:471-471": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "return settings?.sandbox?.autoAllowBashIfSandboxed ?? true",
+   "fingerprint": "dbc7faa3cdff0f94",
+   "version": "claude-code-2.1.88"
+  },
+  "sandbox-adapter.ts:488-528": {
+   "doc": "skills/agent-creator/references/04-sandboxed-execution.md",
+   "excerpt": "* Check if the current platform is supported for sandboxing (memoized) * Supports: macOS, Linux, and WSL2+ (WSL1 is not supported) */ const isSupportedPlatform = memoize((): boolean => { return BaseSandboxManager.isSupportedPlatform() }) /** * Check if the current platform is in the enabledPlatforms list. * * This is an undocumented setting that allows restricting sandbox to specific platforms. * \u2026",
+   "fingerprint": "a598290252e8351e",
+   "version": "claude-code-2.1.88"
+  },
+  "sdk-tools.d.ts:55-106": {
+   "doc": "skills/agent-creator/references/09-orchestration.md",
+   "excerpt": "export type AgentOutput = | { agentId: string; agentType?: string; content: { type: \"text\"; text: string; }[]; totalToolUseCount: number; totalDurationMs: number; totalTokens: number; usage: { input_tokens: number; output_tokens: number; cache_creation_input_tokens: number | null; cache_read_input_tokens: number | null; server_tool_use: { web_search_requests: number; web_fetch_requests: number; } \u2026",
+   "fingerprint": "d8cb666791ce9b3b",
+   "version": "claude-code-2.1.88"
+  },
+  "services/compact/autoCompact.ts:62-70": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export const AUTOCOMPACT_BUFFER_TOKENS = 13_000 export const WARNING_THRESHOLD_BUFFER_TOKENS = 20_000 export const ERROR_THRESHOLD_BUFFER_TOKENS = 20_000 export const MANUAL_COMPACT_BUFFER_TOKENS = 3_000 // Stop trying autocompact after this many consecutive failures. // BQ 2026-03-10: 1,279 sessions had 50+ consecutive failures (up to 3,272) // in a single session, wasting ~250K API calls/day glo\u2026",
+   "fingerprint": "3a27a6d470758962",
+   "version": "claude-code-2.1.88"
+  },
+  "services/compact/compact.ts:1181-1184": {
+   "doc": "skills/agent-creator/references/05-providers.md",
+   "excerpt": "// DO NOT set maxOutputTokens here. The fork piggybacks on the main thread's // prompt cache by sending identical cache-key params (system, tools, model, // messages prefix, thinking config). Setting maxOutputTokens would clamp // budget_tokens via Math.min(budget, maxOutputTokens-1) in claude.ts,",
+   "fingerprint": "fc0143d15c066e6a",
+   "version": "claude-code-2.1.88"
+  },
+  "services/compact/compact.ts:122-124": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export const POST_COMPACT_MAX_FILES_TO_RESTORE = 5 export const POST_COMPACT_TOKEN_BUDGET = 50_000 export const POST_COMPACT_MAX_TOKENS_PER_FILE = 5_000",
+   "fingerprint": "8e989fb9d4a8f61e",
+   "version": "claude-code-2.1.88"
+  },
+  "services/compact/compact.ts:203-224": {
+   "doc": "skills/agent-creator/references/06-prompts.md",
+   "excerpt": "* Strip attachment types that are re-injected post-compaction anyway. * skill_discovery/skill_listing are re-surfaced by resetSentSkillNames() * + the next turn's discovery signal, so feeding them to the summarizer * wastes tokens and pollutes the summary with stale skill suggestions. * * No-op when EXPERIMENTAL_SKILL_SEARCH is off (the attachment types * don't exist on external builds). */ export\u2026",
+   "fingerprint": "a76e8e606a90104e",
+   "version": "claude-code-2.1.88"
+  },
+  "services/compact/microCompact.ts:41-50": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "const COMPACTABLE_TOOLS = new Set<string>([ FILE_READ_TOOL_NAME, ...SHELL_TOOL_NAMES, GREP_TOOL_NAME, GLOB_TOOL_NAME, WEB_SEARCH_TOOL_NAME, WEB_FETCH_TOOL_NAME, FILE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME, ])",
+   "fingerprint": "316270067649153b",
+   "version": "claude-code-2.1.88"
+  },
+  "services/diagnosticTracking.ts:174-176": {
+   "doc": "skills/agent-creator/references/03-evaluator-verifier.md",
+   "excerpt": "// No diagnostic file returned, store an empty baseline const normalizedPath = this.normalizeFileUri(filePath) this.baseline.set(normalizedPath, [])",
+   "fingerprint": "4cba93a8dc39adf0",
+   "version": "claude-code-2.1.88"
+  },
+  "services/diagnosticTracking.ts:210-212": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "const diagnosticsForFileUrisWithBaselines = allDiagnosticFiles .filter(file => this.baseline.has(this.normalizeFileUri(file.uri))) .filter(file => file.uri.startsWith('file://'))",
+   "fingerprint": "c4d5b20bf037cbd0",
+   "version": "claude-code-2.1.88"
+  },
+  "services/diagnosticTracking.ts:266-269": {
+   "doc": "skills/agent-creator/references/03-evaluator-verifier.md",
+   "excerpt": "// Find new diagnostics that aren't in the baseline const newDiagnostics = fileToUse.diagnostics.filter( d => !baselineDiagnostics.some(b => this.areDiagnosticsEqual(d, b)), )",
+   "fingerprint": "120acee710beb131",
+   "version": "claude-code-2.1.88"
+  },
+  "services/diagnosticTracking.ts:266-279": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "// Find new diagnostics that aren't in the baseline const newDiagnostics = fileToUse.diagnostics.filter( d => !baselineDiagnostics.some(b => this.areDiagnosticsEqual(d, b)), ) if (newDiagnostics.length > 0) { newDiagnosticFiles.push({ uri: file.uri, diagnostics: newDiagnostics, }) } // Update baseline with current diagnostics this.baseline.set(normalizedPath, fileToUse.diagnostics)",
+   "fingerprint": "e8093eedbda0b45e",
+   "version": "claude-code-2.1.88"
+  },
+  "services/diagnosticTracking.ts:278-279": {
+   "doc": "skills/agent-creator/references/03-evaluator-verifier.md",
+   "excerpt": "// Update baseline with current diagnostics this.baseline.set(normalizedPath, fileToUse.diagnostics)",
+   "fingerprint": "62fc56e0168e6ad4",
+   "version": "claude-code-2.1.88"
+  },
+  "services/lsp/passiveFeedback.ts:18-35": {
+   "doc": "skills/agent-creator/references/03-evaluator-verifier.md",
+   "excerpt": "function mapLSPSeverity( lspSeverity: number | undefined, ): 'Error' | 'Warning' | 'Info' | 'Hint' { // LSP DiagnosticSeverity enum: // 1 = Error, 2 = Warning, 3 = Information, 4 = Hint switch (lspSeverity) { case 1: return 'Error' case 2: return 'Warning' case 3: return 'Info' case 4: return 'Hint' default: return 'Error' } }",
+   "fingerprint": "563bd56f911a63f5",
+   "version": "claude-code-2.1.88"
+  },
+  "services/tools/toolExecution.ts:134-134": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "export const HOOK_TIMING_DISPLAY_THRESHOLD_MS = 500",
+   "fingerprint": "e75c0a56b9dcdf5b",
+   "version": "claude-code-2.1.88"
+  },
+  "services/tools/toolExecution.ts:137-137": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "const SLOW_PHASE_LOG_THRESHOLD_MS = 2000",
+   "fingerprint": "fa887eb702d8fda2",
+   "version": "claude-code-2.1.88"
+  },
+  "services/tools/toolExecution.ts:599-799": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "async function checkPermissionsAndCallTool( tool: Tool, toolUseID: string, input: { [key: string]: boolean | string | number }, toolUseContext: ToolUseContext, canUseTool: CanUseToolFn, assistantMessage: AssistantMessage, messageId: string, requestId: string | undefined, mcpServerType: McpServerType, mcpServerBaseUrl: ReturnType<typeof getLoggingSafeMcpBaseUrl>, onToolProgress: ( progress: ToolPro\u2026",
+   "fingerprint": "1c3801c6fb4ba2c6",
+   "version": "claude-code-2.1.88"
+  },
+  "services/tools/toolExecution.ts:664-679": {
+   "doc": "skills/agent-creator/references/02-tools.md",
+   "excerpt": "return [ { message: createUserMessage({ content: [ { type: 'tool_result', content: `<tool_use_error>InputValidationError: ${errorContent}</tool_use_error>`, is_error: true, tool_use_id: toolUseID, }, ], toolUseResult: `InputValidationError: ${parsedInput.error.message}`, sourceToolAssistantUUID: assistantMessage.uuid, }), }, ]",
+   "fingerprint": "db30b1e2f8635053",
+   "version": "claude-code-2.1.88"
+  },
+  "shouldUseSandbox.ts:60-69": {
+   "doc": "skills/agent-creator/references/04-sandboxed-execution.md",
+   "excerpt": "// Split compound commands (e.g. \"docker ps && curl evil.com\") into individual // subcommands and check each one against excluded patterns. This prevents a // compound command from escaping the sandbox just because its first subcommand // matches an excluded pattern. let subcommands: string[] try { subcommands = splitCommand_DEPRECATED(command) } catch { subcommands = [command] }",
+   "fingerprint": "78a0c7b3e98afcbf",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/bundled/verify.ts:17-29": {
+   "doc": "skills/agent-creator/references/03-evaluator-verifier.md",
+   "excerpt": "registerBundledSkill({ name: 'verify', description: DESCRIPTION, userInvocable: true, files: SKILL_FILES, async getPromptForCommand(args) { const parts: string[] = [SKILL_BODY.trimStart()] if (args) { parts.push(`## User Request\\n\\n${args}`) } return [{ type: 'text', text: parts.join('\\n\\n') }] }, })",
+   "fingerprint": "ee1da6e722e0ff0b",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/bundledSkills.ts:15-41": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "export type BundledSkillDefinition = { name: string description: string aliases?: string[] whenToUse?: string argumentHint?: string allowedTools?: string[] model?: string disableModelInvocation?: boolean userInvocable?: boolean isEnabled?: () => boolean hooks?: HooksSettings context?: 'inline' | 'fork' agent?: string /** * Additional reference files to extract to disk on first invocation. * Keys a\u2026",
+   "fingerprint": "bf333cb3d882014a",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/bundledSkills.ts:59-73": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "if (files && Object.keys(files).length > 0) { skillRoot = getBundledSkillExtractDir(definition.name) // Closure-local memoization: extract once per process. // Memoize the promise (not the result) so concurrent callers await // the same extraction instead of racing into separate writes. let extractionPromise: Promise<string | null> | undefined const inner = definition.getPromptForCommand getPrompt\u2026",
+   "fingerprint": "3f3eb092ff8b8bf7",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:107-124": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "/** * Gets a unique identifier for a file by resolving symlinks to a canonical path. * This allows detection of duplicate files accessed through different paths * (e.g., via symlinks or overlapping parent directories). * Returns null if the file doesn't exist or can't be resolved. * * Uses realpath to resolve symlinks, which is filesystem-agnostic and avoids * issues with filesystems that report u\u2026",
+   "fingerprint": "c6138f2007e38be1",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:159-178": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "function parseSkillPaths(frontmatter: FrontmatterData): string[] | undefined { if (!frontmatter.paths) { return undefined } const patterns = splitPathInFrontmatter(frontmatter.paths) .map(pattern => { // Remove /** suffix - ignore library treats 'path' as matching both // the path itself and everything inside it return pattern.endsWith('/**') ? pattern.slice(0, -3) : pattern }) .filter((p: string)\u2026",
+   "fingerprint": "afc2ced628434978",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:173-175": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "if (patterns.length === 0 || patterns.every((p: string) => p === '**')) { return undefined }",
+   "fingerprint": "8a4d6abea2f1a2ed",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:185-265": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "export function parseSkillFrontmatterFields( frontmatter: FrontmatterData, markdownContent: string, resolvedName: string, descriptionFallbackLabel: 'Skill' | 'Custom command' = 'Skill', ): { displayName: string | undefined description: string hasUserSpecifiedDescription: boolean allowedTools: string[] argumentHint: string | undefined argumentNames: string[] whenToUse: string | undefined version: s\u2026",
+   "fingerprint": "a542dd85c6dfc789",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:208-214": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "const validatedDescription = coerceDescriptionToString( frontmatter.description, resolvedName, ) const description = validatedDescription ?? extractDescriptionFromMarkdown(markdownContent, descriptionFallbackLabel)",
+   "fingerprint": "106f232716c0362e",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:216-219": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "const userInvocable = frontmatter['user-invocable'] === undefined ? true : parseBooleanFrontmatter(frontmatter['user-invocable'])",
+   "fingerprint": "34f5a9849be44660",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:255-257": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "disableModelInvocation: parseBooleanFrontmatter( frontmatter['disable-model-invocation'], ),",
+   "fingerprint": "de702091ba86cc13",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:345-347": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "let finalContent = baseDir ? `Base directory for this skill: ${baseDir}\\n\\n${markdownContent}` : markdownContent",
+   "fingerprint": "dfcdc98008650fb3",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:356-369": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "// Replace ${CLAUDE_SKILL_DIR} with the skill's own directory so bash // injection (!`...`) can reference bundled scripts. Normalize backslashes // to forward slashes on Windows so shell commands don't treat them as escapes. if (baseDir) { const skillDir = process.platform === 'win32' ? baseDir.replace(/\\\\/g, '/') : baseDir finalContent = finalContent.replace(/\\$\\{CLAUDE_SKILL_DIR\\}/g, skillDir) }\u2026",
+   "fingerprint": "9ffaaabe372038ca",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:371-396": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "// Security: MCP skills are remote and untrusted \u2014 never execute inline // shell commands (!`\u2026` / ```! \u2026 ```) from their markdown body. // ${CLAUDE_SKILL_DIR} is meaningless for MCP skills anyway. if (loadedFrom !== 'mcp') { finalContent = await executeShellCommandsInPrompt( finalContent, { ...toolUseContext, getAppState() { const appState = toolUseContext.getAppState() return { ...appState, toolP\u2026",
+   "fingerprint": "2bd3a2664779c7cf",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:407-480": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "async function loadSkillsFromSkillsDir( basePath: string, source: SettingSource, ): Promise<SkillWithPath[]> { const fs = getFsImplementation() let entries try { entries = await fs.readdir(basePath) } catch (e: unknown) { if (!isFsInaccessible(e)) logError(e) return [] } const results = await Promise.all( entries.map(async (entry): Promise<SkillWithPath | null> => { try { // Only support directory\u2026",
+   "fingerprint": "c9e76c4e51964d78",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:424-452": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "// Only support directory format: skill-name/SKILL.md if (!entry.isDirectory() && !entry.isSymbolicLink()) { // Single .md files are NOT supported in /skills/ directory return null } const skillDirPath = join(basePath, entry.name) const skillFilePath = join(skillDirPath, 'SKILL.md') let content: string try { content = await fs.readFile(skillFilePath, { encoding: 'utf-8' }) } catch (e: unknown) { /\u2026",
+   "fingerprint": "de3e8315e051e0ec",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:638-723": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "export const getSkillDirCommands = memoize( async (cwd: string): Promise<Command[]> => { const userSkillsDir = join(getClaudeConfigHomeDir(), 'skills') const managedSkillsDir = join(getManagedFilePath(), '.claude', 'skills') const projectSkillsDirs = getProjectDirsUpToHome('skills', cwd) logForDebugging( `Loading skills from: managed=${managedSkillsDir}, user=${userSkillsDir}, project=[${projectSk\u2026",
+   "fingerprint": "473cab65f9f091c1",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:650-713": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "const skillsLocked = isRestrictedToPluginOnly('skills') const projectSettingsEnabled = isSettingSourceEnabled('projectSettings') && !skillsLocked // --bare: skip auto-discovery (managed/user/project dir walks + legacy // commands-dir). Load ONLY explicit --add-dir paths. Bundled skills // register separately. skillsLocked still applies \u2014 --bare is not a // policy bypass. if (isBareMode()) { if (ad\u2026",
+   "fingerprint": "72283feebb6ce2f2",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:654-675": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "// --bare: skip auto-discovery (managed/user/project dir walks + legacy // commands-dir). Load ONLY explicit --add-dir paths. Bundled skills // register separately. skillsLocked still applies \u2014 --bare is not a // policy bypass. if (isBareMode()) { if (additionalDirs.length === 0 || !projectSettingsEnabled) { logForDebugging( `[bare] Skipping skill dir discovery (${additionalDirs.length === 0 ? 'no\u2026",
+   "fingerprint": "12f6b5e420cbd333",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:725-763": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "// Deduplicate by resolved path (handles symlinks and duplicate parent directories) // Pre-compute file identities in parallel (realpath calls are independent), // then dedup synchronously (order-dependent first-wins) const fileIds = await Promise.all( allSkillsWithPaths.map(({ skill, filePath }) => skill.type === 'prompt' ? getFileIdentity(filePath) : Promise.resolve(null), ), ) const seenFileIds\u2026",
+   "fingerprint": "7afbed24909673ae",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:861-915": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "export async function discoverSkillDirsForPaths( filePaths: string[], cwd: string, ): Promise<string[]> { const fs = getFsImplementation() const resolvedCwd = cwd.endsWith(pathSep) ? cwd.slice(0, -1) : cwd const newDirs: string[] = [] for (const filePath of filePaths) { // Start from the file's parent directory let currentDir = dirname(filePath) // Walk up to cwd but NOT including cwd itself // CW\u2026",
+   "fingerprint": "111d2a76f4c49208",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:866-876": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "const resolvedCwd = cwd.endsWith(pathSep) ? cwd.slice(0, -1) : cwd const newDirs: string[] = [] for (const filePath of filePaths) { // Start from the file's parent directory let currentDir = dirname(filePath) // Walk up to cwd but NOT including cwd itself // CWD-level skills are already loaded at startup, so we only discover nested ones // Use prefix+separator check to avoid matching /project-back\u2026",
+   "fingerprint": "21c6861903f71b5d",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:886-897": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "// Skills dir exists. Before loading, check if the containing dir // is gitignored \u2014 blocks e.g. node_modules/pkg/.claude/skills from // loading silently. `git check-ignore` handles nested .gitignore, // .git/info/exclude, and global gitignore. Fails open outside a // git repo (exit 128 \u2192 false); the invocation-time trust dialog // is the actual security boundary. if (await isPathGitignored(curren\u2026",
+   "fingerprint": "7f98872e8b9f32fe",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:911-914": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "// Sort by path depth (deepest first) so skills closer to the file take precedence return newDirs.sort( (a, b) => b.split(pathSep).length - a.split(pathSep).length, )",
+   "fingerprint": "0844e283c5c62724",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:944-951": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "// Process in reverse order (shallower first) so deeper paths override for (let i = loadedSkills.length - 1; i >= 0; i--) { for (const { skill } of loadedSkills[i] ?? []) { if (skill.type === 'prompt') { dynamicSkills.set(skill.name, skill) } } }",
+   "fingerprint": "172327a8299cb8dc",
+   "version": "claude-code-2.1.88"
+  },
+  "skills/loadSkillsDir.ts:997-1058": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "export function activateConditionalSkillsForPaths( filePaths: string[], cwd: string, ): string[] { if (conditionalSkills.size === 0) { return [] } const activated: string[] = [] for (const [name, skill] of conditionalSkills) { if (skill.type !== 'prompt' || !skill.paths || skill.paths.length === 0) { continue } const skillIgnore = ignore().add(skill.paths) for (const filePath of filePaths) { const\u2026",
+   "fingerprint": "23668f69454d5264",
+   "version": "claude-code-2.1.88"
+  },
+  "src/query.ts:241-441": {
+   "doc": "skills/agent-creator/references/01-agent-loop.md",
+   "excerpt": "async function* queryLoop( params: QueryParams, consumedCommandUuids: string[], ): AsyncGenerator< | StreamEvent | RequestStartEvent | Message | TombstoneMessage | ToolUseSummaryMessage, Terminal > { // Immutable params \u2014 never reassigned during the query loop. const { systemPrompt, userContext, systemContext, canUseTool, fallbackModel, querySource, maxTurns, skipCacheWrite, } = params const deps \u2026",
+   "fingerprint": "168cfe26fc771508",
+   "version": "claude-code-2.1.88"
+  },
+  "toolExecution.ts:573-598": {
+   "doc": "skills/agent-creator/references/02-tools.md",
+   "excerpt": "* Appended to Zod errors when a deferred tool wasn't in the discovered-tool * set \u2014 re-runs the claude.ts schema-filter scan dispatch-time to detect the * mismatch. The raw Zod error (\"expected array, got string\") doesn't tell the * model to re-load the tool; this hint does. Null if the schema was sent. */ export function buildSchemaNotSentHint( tool: Tool, messages: Message[], tools: readonly { n\u2026",
+   "fingerprint": "57d9c09c112fa370",
+   "version": "claude-code-2.1.88"
+  },
+  "toolExecution.ts:756-773": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "// Defense-in-depth: strip _simulatedSedEdit from model-provided Bash input. // This field is internal-only \u2014 it must only be injected by the permission // system (SedEditPermissionRequest) after user approval. If the model supplies // it, the schema's strictObject should already reject it, but we strip here // as a safeguard against future regressions. let processedInput = parsedInput.data if ( t\u2026",
+   "fingerprint": "e8fe35f34b33aa42",
+   "version": "claude-code-2.1.88"
+  },
+  "toolExecution.ts:775-793": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "// Backfill legacy/derived fields on a shallow clone so hooks/canUseTool see // them without affecting tool.call(). SendMessageTool adds fields; file // tools overwrite file_path with expandPath \u2014 that mutation must not reach // call() because tool results embed the input path verbatim (e.g. \"File // created successfully at: {path}\"), and changing it alters the serialized // transcript and VCR fix\u2026",
+   "fingerprint": "8dffb94076c6b3a3",
+   "version": "claude-code-2.1.88"
+  },
+  "tools.ts:198-201": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "// Ant-native builds have bfs/ugrep embedded in the bun binary (same ARGV0 // trick as ripgrep). When available, find/grep in Claude's shell are aliased // to these fast tools, so the dedicated Glob/Grep tools are unnecessary. ...(hasEmbeddedSearchTools() ? [] : [GlobTool, GrepTool]),",
+   "fingerprint": "99ca6e82ac548d2b",
+   "version": "claude-code-2.1.88"
+  },
+  "tools.ts:262-269": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export function filterToolsByDenyRules< T extends { name: string mcpInfo?: { serverName: string; toolName: string } }, >(tools: readonly T[], permissionContext: ToolPermissionContext): T[] { return tools.filter(tool => !getDenyRuleForTool(permissionContext, tool)) }",
+   "fingerprint": "52525e74488ae6e3",
+   "version": "claude-code-2.1.88"
+  },
+  "tools.ts:271-327": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "export const getTools = (permissionContext: ToolPermissionContext): Tools => { // Simple mode: only Bash, Read, and Edit tools if (isEnvTruthy(process.env.CLAUDE_CODE_SIMPLE)) { // --bare + REPL mode: REPL wraps Bash/Read/Edit/etc inside the VM, so // return REPL instead of the raw primitives. Matches the non-bare path // below which also hides REPL_ONLY_TOOLS when REPL is enabled. if (isReplModeE\u2026",
+   "fingerprint": "8fc6b765a10e6481",
+   "version": "claude-code-2.1.88"
+  },
+  "tools.ts:312-323": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "// When REPL mode is enabled, hide primitive tools from direct use. // They're still accessible inside REPL via the VM context. if (isReplModeEnabled()) { const replEnabled = allowedTools.some(tool => toolMatchesName(tool, REPL_TOOL_NAME), ) if (replEnabled) { allowedTools = allowedTools.filter( tool => !REPL_ONLY_TOOLS.has(tool.name), ) } }",
+   "fingerprint": "99ae8980f4988750",
+   "version": "claude-code-2.1.88"
+  },
+  "tools.ts:345-367": {
+   "doc": "skills/agent-creator/case-studies/claude-code-tool-catalog.md",
+   "excerpt": "export function assembleToolPool( permissionContext: ToolPermissionContext, mcpTools: Tools, ): Tools { const builtInTools = getTools(permissionContext) // Filter out MCP tools that are in the deny list const allowedMcpTools = filterToolsByDenyRules(mcpTools, permissionContext) // Sort each partition for prompt-cache stability, keeping built-ins as a // contiguous prefix. The server's claude_code_\u2026",
+   "fingerprint": "54cbc8ad3901cee8",
+   "version": "claude-code-2.1.88"
+  },
+  "tools.ts:354-366": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "// Sort each partition for prompt-cache stability, keeping built-ins as a // contiguous prefix. The server's claude_code_system_cache_policy places a // global cache breakpoint after the last prefix-matched built-in tool; a flat // sort would interleave MCP tools into built-ins and invalidate all downstream // cache keys whenever an MCP tool sorts between existing built-ins. uniqBy // preserves in\u2026",
+   "fingerprint": "3fc16272f9301a94",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/AgentTool/loadAgentsDir.ts:106-133": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export type BaseAgentDefinition = { agentType: string whenToUse: string tools?: string[] disallowedTools?: string[] skills?: string[] // Skill names to preload (parsed from comma-separated frontmatter) mcpServers?: AgentMcpServerSpec[] // MCP servers specific to this agent hooks?: HooksSettings // Session-scoped hooks registered when agent starts color?: AgentColorName model?: string effort?: Effo\u2026",
+   "fingerprint": "d64eefff24b18778",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/AgentTool/loadAgentsDir.ts:128-132": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "/** Omit CLAUDE.md hierarchy from the agent's userContext. Read-only agents * (Explore, Plan) don't need commit/PR/lint guidelines \u2014 the main agent has * full CLAUDE.md and interprets their output. Saves ~5-15 Gtok/week across * 34M+ Explore spawns. Kill-switch: tengu_slim_subagent_claudemd. */ omitClaudeMd?: boolean",
+   "fingerprint": "dc8df4feaffa340d",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/AgentTool/prompt.ts:48-59": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "/** * Whether the agent list should be injected as an attachment message instead * of embedded in the tool description. When true, getPrompt() returns a static * description and attachments.ts emits an agent_listing_delta attachment. * * The dynamic agent list was ~10.2% of fleet cache_creation tokens: MCP async * connect, /reload-plugins, or permission-mode changes mutate the list \u2192 * description\u2026",
+   "fingerprint": "7551c2bbfea1797b",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/AgentTool/prompt.ts:52-55": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "* * The dynamic agent list was ~10.2% of fleet cache_creation tokens: MCP async * connect, /reload-plugins, or permission-mode changes mutate the list \u2192 * description changes \u2192 full tool-schema cache bust.",
+   "fingerprint": "37fcd95c12fffdf9",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/AgentTool/runAgent.ts:297-300": {
+   "doc": "skills/agent-creator/references/09-orchestration.md",
+   "excerpt": "/** Tool permission rules to add to the agent's session allow rules. * When provided, replaces ALL allow rules so the agent only has what's * explicitly listed (parent approvals don't leak through). */ allowedTools?: string[]",
+   "fingerprint": "04e35d88b139c7a5",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/AgentTool/runAgent.ts:305-308": {
+   "doc": "skills/agent-creator/references/08-state-persistence.md",
+   "excerpt": "/** Replacement state reconstructed from a resumed sidechain transcript so * the same tool results are re-replaced (prompt cache stability). When * omitted, createSubagentContext clones the parent's state. */ contentReplacementState?: ContentReplacementState",
+   "fingerprint": "7abf704402d5df72",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/AgentTool/runAgent.ts:315-317": {
+   "doc": "skills/agent-creator/references/08-state-persistence.md",
+   "excerpt": "/** Worktree path if the agent was spawned with isolation: \"worktree\". * Persisted to metadata so resume can restore the correct cwd. */ worktreePath?: string",
+   "fingerprint": "79c69096f0705b51",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/BashTool/BashTool.tsx:424-424": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "maxResultSizeChars: 30_000,",
+   "fingerprint": "4ff9fe64ed2424c8",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/BashTool/bashPermissions.ts:1356-1356": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "reason: 'Auto-allowed with sandbox (autoAllowBashIfSandboxed enabled)',",
+   "fingerprint": "67e1a943b2d19e0f",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/BashTool/prompt.ts:185-190": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "// Replace the per-UID temp dir literal (e.g. /private/tmp/claude-1001/) with // \"$TMPDIR\" so the prompt is identical across users \u2014 avoids busting the // cross-user global prompt cache. The sandbox already sets $TMPDIR at runtime. const claudeTempDir = getClaudeTempDir() const normalizeAllowOnly = (paths: string[]): string[] => [...new Set(paths)].map(p => (p === claudeTempDir ? '$TMPDIR' : p))",
+   "fingerprint": "f9877197a508d07e",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/BashTool/prompt.ts:192-213": {
+   "doc": "skills/agent-creator/references/04-sandboxed-execution.md",
+   "excerpt": "const filesystemConfig = { read: { denyOnly: dedup(fsReadConfig.denyOnly), ...(fsReadConfig.allowWithinDeny && { allowWithinDeny: dedup(fsReadConfig.allowWithinDeny), }), }, write: { allowOnly: normalizeAllowOnly(fsWriteConfig.allowOnly), denyWithinAllow: dedup(fsWriteConfig.denyWithinAllow), }, } const networkConfig = { ...(networkRestrictionConfig?.allowedHosts && { allowedHosts: dedup(networkRe\u2026",
+   "fingerprint": "93fa07c5376b53ba",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/BashTool/prompt.ts:215-272": {
+   "doc": "skills/agent-creator/references/04-sandboxed-execution.md",
+   "excerpt": "const restrictionsLines = [] if (Object.keys(filesystemConfig).length > 0) { restrictionsLines.push(`Filesystem: ${jsonStringify(filesystemConfig)}`) } if (Object.keys(networkConfig).length > 0) { restrictionsLines.push(`Network: ${jsonStringify(networkConfig)}`) } if (ignoreViolations) { restrictionsLines.push( `Ignored violations: ${jsonStringify(ignoreViolations)}`, ) } const sandboxOverrideIte\u2026",
+   "fingerprint": "4eec6c4148bec9c8",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/BashTool/prompt.ts:228-256": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "const sandboxOverrideItems: Array<string | string[]> = allowUnsandboxedCommands ? [ 'You should always default to running commands within the sandbox. Do NOT attempt to set `dangerouslyDisableSandbox: true` unless:', [ 'The user *explicitly* asks you to bypass sandbox', 'A specific command just failed and you see evidence of sandbox restrictions causing the failure. Note that commands can fail for\u2026",
+   "fingerprint": "4f6bf2ed4d4294df",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/BashTool/prompt.ts:275-369": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export function getSimplePrompt(): string { // Ant-native builds alias find/grep to embedded bfs/ugrep in Claude's shell, // so we don't steer away from them (and Glob/Grep tools are removed). const embedded = hasEmbeddedSearchTools() const toolPreferenceItems = [ ...(embedded ? [] : [ `File search: Use ${GLOB_TOOL_NAME} (NOT find or ls)`, `Content search: Use ${GREP_TOOL_NAME} (NOT grep or rg)`, \u2026",
+   "fingerprint": "d00bffe32df99980",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/BashTool/prompt.ts:280-291": {
+   "doc": "skills/agent-creator/references/06-prompts.md",
+   "excerpt": "const toolPreferenceItems = [ ...(embedded ? [] : [ `File search: Use ${GLOB_TOOL_NAME} (NOT find or ls)`, `Content search: Use ${GREP_TOOL_NAME} (NOT grep or rg)`, ]), `Read files: Use ${FILE_READ_TOOL_NAME} (NOT cat/head/tail)`, `Edit files: Use ${FILE_EDIT_TOOL_NAME} (NOT sed/awk)`, `Write files: Use ${FILE_WRITE_TOOL_NAME} (NOT echo >/cat <<EOF)`, 'Communication: Output text directly (NOT echo\u2026",
+   "fingerprint": "b6979e02ed956664",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/BashTool/shouldUseSandbox.ts:18-20": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "// NOTE: excludedCommands is a user-facing convenience feature, not a security boundary. // It is not a security bug to be able to bypass excludedCommands \u2014 the sandbox permission // system (which prompts users) is the actual security control.",
+   "fingerprint": "719f61c65d39ac28",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/EnterPlanModeTool/prompt.ts:16-21": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "function getEnterPlanModeToolPromptExternal(): string { // When interview phase is enabled, omit the \"What Happens\" section \u2014 // detailed workflow instructions arrive via the plan_mode attachment (messages.ts). const whatHappens = isPlanModeInterviewPhaseEnabled() ? '' : WHAT_HAPPENS_SECTION",
+   "fingerprint": "d1844faa540b835e",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/EnterPlanModeTool/prompt.ts:23-40": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "return `Use this tool proactively when you're about to start a non-trivial implementation task. Getting user sign-off on your approach before writing code prevents wasted effort and ensures alignment. This tool transitions you into plan mode where you can explore the codebase and design an implementation approach for user approval. ## When to Use This Tool **Prefer using EnterPlanMode** for implem\u2026",
+   "fingerprint": "da02cde7d00ffa67",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/EnterPlanModeTool/prompt.ts:4-13": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "const WHAT_HAPPENS_SECTION = `## What Happens in Plan Mode In plan mode, you'll: 1. Thoroughly explore the codebase using Glob, Grep, and Read tools 2. Understand existing patterns and architecture 3. Design an implementation approach 4. Present your plan to the user for approval 5. Use ${ASK_USER_QUESTION_TOOL_NAME} if you need to clarify approaches 6. Exit plan mode with ExitPlanMode when ready \u2026",
+   "fingerprint": "a1bd6b31698caa02",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/ExitPlanModeTool/ExitPlanModeV2Tool.ts:185-194": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "requiresUserInteraction() { // For ALL teammates, no local user interaction needed: // - If isPlanModeRequired(): team lead approves via mailbox // - Otherwise: exits locally without approval (voluntary plan mode) if (isTeammate()) { return false } // For non-teammates, require user confirmation to exit plan mode return true },",
+   "fingerprint": "69ab157d28dbe9d2",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/ExitPlanModeTool/prompt.ts:1-10": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "// External stub for ExitPlanModeTool prompt - excludes Ant-only allowedPrompts section // Hardcoded to avoid relative import issues in stub const ASK_USER_QUESTION_TOOL_NAME = 'AskUserQuestion' export const EXIT_PLAN_MODE_V2_TOOL_PROMPT = `Use this tool when you are in plan mode and have finished writing your plan to the plan file and are ready for user approval. ## How This Tool Works - You shou\u2026",
+   "fingerprint": "2a13dd6c6e3bf750",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/FileEditTool/FileEditTool.ts:425-425": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "await diagnosticTracker.beforeFileEdited(absoluteFilePath)",
+   "fingerprint": "ce4c39f842f074f9",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/FileReadTool/FileReadTool.ts:342-342": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "maxResultSizeChars: Infinity,",
+   "fingerprint": "b8ae51159a554581",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/FileReadTool/limits.ts:18-18": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export const DEFAULT_MAX_OUTPUT_TOKENS = 25000",
+   "fingerprint": "0eb0652f01842c10",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/FileReadTool/prompt.ts:10-10": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export const MAX_LINES_TO_READ = 2000",
+   "fingerprint": "ce7ff408ff450e95",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/FileWriteTool/FileWriteTool.ts:247-247": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "await diagnosticTracker.beforeFileEdited(fullFilePath)",
+   "fingerprint": "90d36cf7c643b0ce",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/GrepTool/GrepTool.ts:108-108": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "const DEFAULT_HEAD_LIMIT = 250",
+   "fingerprint": "5fa5250f1035f429",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/GrepTool/GrepTool.ts:164-164": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "maxResultSizeChars: 20_000,",
+   "fingerprint": "48d8c264c1bf6b27",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/SkillTool.ts:291-298": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "export const inputSchema = lazySchema(() => z.object({ skill: z .string() .describe('The skill name. E.g., \"commit\", \"review-pr\", or \"pdf\"'), args: z.string().optional().describe('Optional arguments for the skill'), }), )",
+   "fingerprint": "4bb1803ddb2b4da4",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/SkillTool.ts:301-326": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "export const outputSchema = lazySchema(() => { // Output schema for inline skills (default) const inlineOutputSchema = z.object({ success: z.boolean().describe('Whether the skill is valid'), commandName: z.string().describe('The name of the skill'), allowedTools: z .array(z.string()) .optional() .describe('Tools allowed by this skill'), model: z.string().optional().describe('Model override if spec\u2026",
+   "fingerprint": "0ec0ae887c0be920",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/SkillTool.ts:334-334": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "maxResultSizeChars: 100_000,",
+   "fingerprint": "1f3721924eca3a63",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/SkillTool.ts:354-430": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "async validateInput({ skill }, context): Promise<ValidationResult> { // Skills are just skill names, no arguments const trimmed = skill.trim() if (!trimmed) { return { result: false, message: `Invalid skill format: ${skill}`, errorCode: 1, } } // Remove leading slash if present (for compatibility) const hasLeadingSlash = trimmed.startsWith('/') if (hasLeadingSlash) { logEvent('tengu_skill_tool_sla\u2026",
+   "fingerprint": "0ef631c8b21c3344",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/SkillTool.ts:432-578": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "async checkPermissions( { skill, args }, context, ): Promise<PermissionDecision> { // Skills are just skill names, no arguments const trimmed = skill.trim() // Remove leading slash if present (for compatibility) const commandName = trimmed.startsWith('/') ? trimmed.substring(1) : trimmed const appState = context.getAppState() const permissionContext = appState.toolPermissionContext // Look up the \u2026",
+   "fingerprint": "0518f026928f9185",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/SkillTool.ts:540-567": {
+   "doc": "skills/agent-creator/references/13-permission-and-consent.md",
+   "excerpt": "// Prepare suggestions for exact skill and prefix // Use normalized commandName (without leading slash) for consistent rules const suggestions = [ // Exact skill suggestion { type: 'addRules' as const, rules: [ { toolName: SKILL_TOOL_NAME, ruleContent: commandName, }, ], behavior: 'allow' as const, destination: 'localSettings' as const, }, // Prefix suggestion to allow any args { type: 'addRules' \u2026",
+   "fingerprint": "621d918d49985a30",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/SkillTool.ts:580-580": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "async call(",
+   "fingerprint": "5385516f3044959b",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/SkillTool.ts:875-933": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "const SAFE_SKILL_PROPERTIES = new Set([ // PromptCommand properties 'type', 'progressMessage', 'contentLength', 'argNames', 'model', 'effort', 'source', 'pluginInfo', 'disableNonInteractive', 'skillRoot', 'context', 'agent', 'getPromptForCommand', 'frontmatterKeys', // CommandBase properties 'name', 'description', 'hasUserSpecifiedDescription', 'isEnabled', 'isHidden', 'aliases', 'isMcp', 'argumen\u2026",
+   "fingerprint": "92f91b13a74e07a8",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/prompt.ts:188-195": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "Important: - Available skills are listed in system-reminder messages in the conversation - When a skill matches the user's request, this is a BLOCKING REQUIREMENT: invoke the relevant Skill tool BEFORE generating any other response about the task - NEVER mention a skill without actually calling this tool - Do not invoke a skill that is already running - Do not use this tool for built-in CLI comman\u2026",
+   "fingerprint": "541ae3395acbf9ea",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/prompt.ts:21-21": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "export const SKILL_BUDGET_CONTEXT_PERCENT = 0.01",
+   "fingerprint": "e39c609cedeef02a",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/prompt.ts:21-29": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export const SKILL_BUDGET_CONTEXT_PERCENT = 0.01 export const CHARS_PER_TOKEN = 4 export const DEFAULT_CHAR_BUDGET = 8_000 // Fallback: 1% of 200k \u00d7 4 // Per-entry hard cap. The listing is for discovery only \u2014 the Skill tool loads // full content on invoke, so verbose whenToUse strings waste turn-1 cache_creation // tokens without improving match rate. Applies to all entries, including bundled, //\u2026",
+   "fingerprint": "428eec92222010e4",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/prompt.ts:21-41": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "export const SKILL_BUDGET_CONTEXT_PERCENT = 0.01 export const CHARS_PER_TOKEN = 4 export const DEFAULT_CHAR_BUDGET = 8_000 // Fallback: 1% of 200k \u00d7 4 // Per-entry hard cap. The listing is for discovery only \u2014 the Skill tool loads // full content on invoke, so verbose whenToUse strings waste turn-1 cache_creation // tokens without improving match rate. Applies to all entries, including bundled, //\u2026",
+   "fingerprint": "b632343c51cc426a",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/prompt.ts:22-22": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "export const CHARS_PER_TOKEN = 4",
+   "fingerprint": "74302d5be346c09b",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/prompt.ts:23-23": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "export const DEFAULT_CHAR_BUDGET = 8_000 // Fallback: 1% of 200k \u00d7 4",
+   "fingerprint": "23bc4f31f083e615",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/prompt.ts:25-29": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "// Per-entry hard cap. The listing is for discovery only \u2014 the Skill tool loads // full content on invoke, so verbose whenToUse strings waste turn-1 cache_creation // tokens without improving match rate. Applies to all entries, including bundled, // since the cap is generous enough to preserve the core use case. export const MAX_LISTING_DESC_CHARS = 250",
+   "fingerprint": "d0c3be69e47e7ae5",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/prompt.ts:29-29": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "export const MAX_LISTING_DESC_CHARS = 250",
+   "fingerprint": "d00ee99207ad3e82",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/prompt.ts:68-68": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "const MIN_DESC_LENGTH = 20",
+   "fingerprint": "3ae14d3bf87ae273",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/SkillTool/prompt.ts:70-171": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "export function formatCommandsWithinBudget( commands: Command[], contextWindowTokens?: number, ): string { if (commands.length === 0) return '' const budget = getCharBudget(contextWindowTokens) // Try full descriptions first const fullEntries = commands.map(cmd => ({ cmd, full: formatCommandDescription(cmd), })) // join('\\n') produces N-1 newlines for N entries const fullTotal = fullEntries.reduce\u2026",
+   "fingerprint": "ae9080c1780906ad",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/TodoWriteTool/prompt.ts:14-14": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "6. When you start working on a task - Mark it as in_progress BEFORE beginning work. Ideally you should only have one todo as in_progress at a time",
+   "fingerprint": "4f0b84f94562b1c0",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/TodoWriteTool/prompt.ts:3-25": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "export const PROMPT = `Use this tool to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user. It also helps the user understand the progress of the task and overall progress of their requests. ## When to Use This Tool Use this tool proactively in these scenarios: 1. Complex multi-st\u2026",
+   "fingerprint": "637942f58406c78f",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/TodoWriteTool/prompt.ts:9-9": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "1. Complex multi-step tasks - When a task requires 3 or more distinct steps or actions",
+   "fingerprint": "18fbba8b2c5a7426",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/ToolSearchTool/prompt.ts:110-117": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "/** * Format one deferred-tool line for the <available-deferred-tools> user * message. Search hints (tool.searchHint) are not rendered \u2014 the * hints A/B (exp_xenhnnmn0smrx4, stopped Mar 21) showed no benefit. */ export function formatDeferredToolLine(tool: Tool): string { return tool.name }",
+   "fingerprint": "8effee1e566057ff",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/ToolSearchTool/prompt.ts:44-51": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "const PROMPT_TAIL = ` Until fetched, only the name is known \u2014 there is no parameter schema, so the tool cannot be invoked. This tool takes a query, matches it against the deferred tool list, and returns the matched tools' complete JSONSchema definitions inside a <functions> block. Once a tool's schema appears in that result, it is callable exactly like any tool defined at the top of the prompt. Re\u2026",
+   "fingerprint": "81e2b0db91111f10",
+   "version": "claude-code-2.1.88"
+  },
+  "tools/ToolSearchTool/prompt.ts:62-108": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export function isDeferredTool(tool: Tool): boolean { // Explicit opt-out via _meta['anthropic/alwaysLoad'] \u2014 tool appears in the // initial prompt with full schema. Checked first so MCP tools can opt out. if (tool.alwaysLoad === true) return false // MCP tools are always deferred (workflow-specific) if (tool.isMcp === true) return true // Never defer ToolSearch itself \u2014 the model needs it to load\u2026",
+   "fingerprint": "d3c037c6f7718ea7",
+   "version": "claude-code-2.1.88"
+  },
+  "types/permissions.ts:16-22": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "export const EXTERNAL_PERMISSION_MODES = [ 'acceptEdits', 'bypassPermissions', 'default', 'dontAsk', 'plan', ] as const",
+   "fingerprint": "97cf183cb5b3d0ae",
+   "version": "claude-code-2.1.88"
+  },
+  "types/permissions.ts:16-38": {
+   "doc": "skills/agent-creator/references/13-permission-and-consent.md",
+   "excerpt": "export const EXTERNAL_PERMISSION_MODES = [ 'acceptEdits', 'bypassPermissions', 'default', 'dontAsk', 'plan', ] as const export type ExternalPermissionMode = (typeof EXTERNAL_PERMISSION_MODES)[number] // Exhaustive mode union for typechecking. The user-addressable runtime set // is INTERNAL_PERMISSION_MODES below. export type InternalPermissionMode = ExternalPermissionMode | 'auto' | 'bubble' expor\u2026",
+   "fingerprint": "446314c9eeea1fa3",
+   "version": "claude-code-2.1.88"
+  },
+  "types/permissions.ts:54-62": {
+   "doc": "skills/agent-creator/references/13-permission-and-consent.md",
+   "excerpt": "export type PermissionRuleSource = | 'userSettings' | 'projectSettings' | 'localSettings' | 'flagSettings' | 'policySettings' | 'cliArg' | 'command' | 'session'",
+   "fingerprint": "9e7d36de476a2a37",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/attachments.ts:254-257": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export const TODO_REMINDER_CONFIG = { TURNS_SINCE_WRITE: 10, TURNS_BETWEEN_REMINDERS: 10, } as const",
+   "fingerprint": "451ef03751300055",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/attachments.ts:259-262": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "export const PLAN_MODE_ATTACHMENT_CONFIG = { TURNS_BETWEEN_ATTACHMENTS: 5, FULL_REMINDER_EVERY_N_ATTACHMENTS: 5, } as const",
+   "fingerprint": "a9f41aea72cbc8ea",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/attachments.ts:259-267": {
+   "doc": "skills/agent-creator/references/06-prompts.md",
+   "excerpt": "export const PLAN_MODE_ATTACHMENT_CONFIG = { TURNS_BETWEEN_ATTACHMENTS: 5, FULL_REMINDER_EVERY_N_ATTACHMENTS: 5, } as const export const AUTO_MODE_ATTACHMENT_CONFIG = { TURNS_BETWEEN_ATTACHMENTS: 5, FULL_REMINDER_EVERY_N_ATTACHMENTS: 5, } as const",
+   "fingerprint": "bb403419e1af9482",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/attachments.ts:261-261": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "FULL_REMINDER_EVERY_N_ATTACHMENTS: 5,",
+   "fingerprint": "2e97d9317f1b2a8b",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/attachments.ts:269-269": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "const MAX_MEMORY_LINES = 200",
+   "fingerprint": "c657b0d1543ac3fa",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/attachments.ts:269-289": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "const MAX_MEMORY_LINES = 200 // Line cap alone doesn't bound size (200 \u00d7 500-char lines = 100KB). The // surfacer injects up to 5 files per turn via <system-reminder>, bypassing // the per-message tool-result budget, so a tight per-file byte cap keeps // aggregate injection bounded (5 \u00d7 4KB = 20KB/turn). Enforced via // readFileInRange's truncateOnByteLimit option. Truncation means the // most-rel\u2026",
+   "fingerprint": "b3e44df0d9b3b8b1",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/attachments.ts:277-277": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "const MAX_MEMORY_BYTES = 4096",
+   "fingerprint": "53bee18e49f3ce58",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/attachments.ts:283-287": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "// prefetching entirely. Budget is ~3 full injections; after that the // most-relevant memories are already in context. Scanning messages // (rather than tracking in toolUseContext) means compact naturally // resets the counter \u2014 old attachments are gone from context, so // re-surfacing is valid.",
+   "fingerprint": "de33d4bca53c3f94",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/attachments.ts:2857-2862": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "// Diagnostics are only useful if the agent has the Bash tool to act on them if ( !toolUseContext.options.tools.some(t => toolMatchesName(t, BASH_TOOL_NAME)) ) { return [] }",
+   "fingerprint": "6baeca2b4f7010de",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/attachments.ts:288-288": {
+   "doc": "skills/agent-creator/references/14-memory.md",
+   "excerpt": "MAX_SESSION_BYTES: 60 * 1024,",
+   "fingerprint": "64c7e8f44b305fc0",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/attachments.ts:440-621": {
+   "doc": "skills/agent-creator/references/06-prompts.md",
+   "excerpt": "export type Attachment = /** * User at-mentioned the file */ | FileAttachment | CompactFileReferenceAttachment | PDFReferenceAttachment | AlreadyReadFileAttachment /** * An at-mentioned file was edited */ | { type: 'edited_text_file' filename: string snippet: string } | { type: 'edited_image_file' filename: string content: FileReadToolOutput } | { type: 'directory' path: string content: string /**\u2026",
+   "fingerprint": "877a515d05ca044f",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/hooks.ts:166-166": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "const TOOL_HOOK_EXECUTION_TIMEOUT_MS = 10 * 60 * 1000",
+   "fingerprint": "5d5ddacb14cad0b8",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/hooks.ts:168-182": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "/** * SessionEnd hooks run during shutdown/clear and need a much tighter bound * than TOOL_HOOK_EXECUTION_TIMEOUT_MS. This value is used by callers as both * the per-hook default timeout AND the overall AbortSignal cap (hooks run in * parallel, so one value suffices). Overridable via env var for users whose * teardown scripts need more time. */ const SESSION_END_HOOK_TIMEOUT_MS_DEFAULT = 1500 expo\u2026",
+   "fingerprint": "f648a36c863a9ca4",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/hooks.ts:175-182": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "const SESSION_END_HOOK_TIMEOUT_MS_DEFAULT = 1500 export function getSessionEndHookTimeoutMs(): number { const raw = process.env.CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS const parsed = raw ? parseInt(raw, 10) : NaN return Number.isFinite(parsed) && parsed > 0 ? parsed : SESSION_END_HOOK_TIMEOUT_MS_DEFAULT }",
+   "fingerprint": "25d5aaefc4ba26ae",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/hooks.ts:184-265": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "function executeInBackground({ processId, hookId, shellCommand, asyncResponse, hookEvent, hookName, command, asyncRewake, pluginId, }: { processId: string hookId: string shellCommand: ShellCommand asyncResponse: AsyncHookJSONOutput hookEvent: HookEvent | 'StatusLine' | 'FileSuggestion' hookName: string command: string asyncRewake?: boolean pluginId?: string }): boolean { if (asyncRewake) { // asyn\u2026",
+   "fingerprint": "2e12ee8f8a7e5af1",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/hooks.ts:236-236": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "if (result.code === 2) {",
+   "fingerprint": "099fe6e82eb46342",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/hooks.ts:236-243": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "if (result.code === 2) { enqueuePendingNotification({ value: wrapInSystemReminder( `Stop hook blocking error from command \"${hookName}\": ${stderr || stdout}`, ), mode: 'task-notification', }) }",
+   "fingerprint": "b0d878344db951af",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/hooks.ts:2647-2647": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "// Hooks with exit code 2 provide blocking feedback",
+   "fingerprint": "69882b17a75323e9",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/hooks.ts:267-296": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "/** * Checks if a hook should be skipped due to lack of workspace trust. * * ALL hooks require workspace trust because they execute arbitrary commands from * .claude/settings.json. This is a defense-in-depth security measure. * * Context: Hooks are captured via captureHooksConfigSnapshot() before the trust * dialog is shown. While most hooks won't execute until after trust is established * through\u2026",
+   "fingerprint": "e83bcd9657747275",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/hooks.ts:280-283": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "* Historical vulnerabilities that prompted this check: * - SessionEnd hooks executing when user declines trust dialog * - SubagentStop hooks executing when subagent completes before trust *",
+   "fingerprint": "b93c654643839f62",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/hooks.ts:286-296": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "export function shouldSkipHookDueToTrust(): boolean { // In non-interactive mode (SDK), trust is implicit - always execute const isInteractive = !getIsNonInteractiveSession() if (!isInteractive) { return false } // In interactive mode, ALL hooks require trust const hasTrust = checkHasTrustDialogAccepted() return !hasTrust }",
+   "fingerprint": "e5dcdd652245f841",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/hooks.ts:415-446": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "// For command hooks, include the schema hint in the error message const errorMessage = `${result.validationError}\\n\\nExpected schema:\\n${jsonStringify( { continue: 'boolean (optional)', suppressOutput: 'boolean (optional)', stopReason: 'string (optional)', decision: '\"approve\" | \"block\" (optional)', reason: 'string (optional)', systemMessage: 'string (optional)', permissionDecision: '\"allow\" | \"d\u2026",
+   "fingerprint": "7165345a058ea3c9",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/hooks.ts:489-570": {
+   "doc": "skills/agent-creator/references/12-hooks-and-extension.md",
+   "excerpt": "function processHookJSONOutput({ json, command, hookName, toolUseID, hookEvent, expectedHookEvent, stdout, stderr, exitCode, durationMs, }: { json: SyncHookJSONOutput command: string hookName: string toolUseID: string hookEvent: HookEvent expectedHookEvent?: HookEvent stdout?: string stderr?: string exitCode?: number durationMs?: number }): Partial<HookResult> { const result: Partial<HookResult> =\u2026",
+   "fingerprint": "cd0f2a75016d3264",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/messages.ts:3385-3399": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "function getPlanModeV2SparseInstructions(attachment: { planFilePath: string }): UserMessage[] { const workflowDescription = isPlanModeInterviewPhaseEnabled() ? 'Follow iterative workflow: explore codebase, interview user, write to plan incrementally.' : 'Follow 5-phase workflow.' const content = `Plan mode still active (see full instructions earlier in conversation). Read-only except plan file (${\u2026",
+   "fingerprint": "c1b5420ea5a34fcf",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/modelCost.ts:166-172": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "function trackUnknownModelCost(model: string, shortName: ModelShortName): void { logEvent('tengu_unknown_model_cost', { model: model as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS, shortName: shortName as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS, }) setHasUnknownModelCost()",
+   "fingerprint": "7cfcdfa4f419fe5e",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/permissions/permissions.ts:107-107": {
+   "doc": "skills/agent-creator/references/13-permission-and-consent.md",
+   "excerpt": "const CLASSIFIER_FAIL_CLOSED_REFRESH_MS = 30 * 60 * 1000 // 30 minutes",
+   "fingerprint": "846cd9b41a4edef1",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/permissions/permissions.ts:1158-1319": {
+   "doc": "skills/agent-creator/references/13-permission-and-consent.md",
+   "excerpt": "async function hasPermissionsToUseToolInner( tool: Tool, input: { [key: string]: unknown }, context: ToolUseContext, ): Promise<PermissionDecision> { if (context.abortController.signal.aborted) { throw new AbortError() } let appState = context.getAppState() // 1. Check if the tool is denied // 1a. Entire tool is denied const denyRule = getDenyRuleForTool(appState.toolPermissionContext, tool) if (d\u2026",
+   "fingerprint": "4e25248d028cb495",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/permissions/permissions.ts:1186-1206": {
+   "doc": "skills/agent-creator/references/13-permission-and-consent.md",
+   "excerpt": "// When autoAllowBashIfSandboxed is on, sandboxed commands skip the ask rule and // auto-allow via Bash's checkPermissions. Commands that won't be sandboxed (excluded // commands, dangerouslyDisableSandbox) still need to respect the ask rule. const canSandboxAutoAllow = tool.name === BASH_TOOL_NAME && SandboxManager.isSandboxingEnabled() && SandboxManager.isAutoAllowBashIfSandboxedEnabled() && sho\u2026",
+   "fingerprint": "b927987c09a40748",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/permissions/permissions.ts:1225-1260": {
+   "doc": "skills/agent-creator/references/13-permission-and-consent.md",
+   "excerpt": "// 1d. Tool implementation denied permission if (toolPermissionResult?.behavior === 'deny') { return toolPermissionResult } // 1e. Tool requires user interaction even in bypass mode if ( tool.requiresUserInteraction?.() && toolPermissionResult?.behavior === 'ask' ) { return toolPermissionResult } // 1f. Content-specific ask rules from tool.checkPermissions take precedence // over bypassPermissions\u2026",
+   "fingerprint": "5cf978d7b3d36eba",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/permissions/permissions.ts:1225-1281": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "// 1d. Tool implementation denied permission if (toolPermissionResult?.behavior === 'deny') { return toolPermissionResult } // 1e. Tool requires user interaction even in bypass mode if ( tool.requiresUserInteraction?.() && toolPermissionResult?.behavior === 'ask' ) { return toolPermissionResult } // 1f. Content-specific ask rules from tool.checkPermissions take precedence // over bypassPermissions\u2026",
+   "fingerprint": "f10a8a19134ffaba",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/permissions/permissions.ts:1238-1260": {
+   "doc": "skills/agent-creator/references/13-permission-and-consent.md",
+   "excerpt": "// 1f. Content-specific ask rules from tool.checkPermissions take precedence // over bypassPermissions mode. When a user explicitly configures a // content-specific ask rule (e.g. Bash(npm publish:*)), the tool's // checkPermissions returns {behavior:'ask', decisionReason:{type:'rule', // rule:{ruleBehavior:'ask'}}}. This must be respected even in bypass mode, // just as deny rules are respected a\u2026",
+   "fingerprint": "443dccc7aa285185",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/permissions/permissions.ts:1299-1310": {
+   "doc": "skills/agent-creator/references/13-permission-and-consent.md",
+   "excerpt": "// 3. Convert \"passthrough\" to \"ask\" const result: PermissionDecision = toolPermissionResult.behavior === 'passthrough' ? { ...toolPermissionResult, behavior: 'ask' as const, message: createPermissionRequestMessage( tool.name, toolPermissionResult.decisionReason, ), } : toolPermissionResult",
+   "fingerprint": "13ed79868bbdf33c",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/permissions/permissions.ts:473-520": {
+   "doc": "skills/agent-creator/references/13-permission-and-consent.md",
+   "excerpt": "export const hasPermissionsToUseTool: CanUseToolFn = async ( tool, input, context, assistantMessage, toolUseID, ): Promise<PermissionDecision> => { const result = await hasPermissionsToUseToolInner(tool, input, context) // Reset consecutive denials on any allowed tool use in auto mode. // This ensures that a successful tool use (even one auto-allowed by rules) // breaks the consecutive denial stre\u2026",
+   "fingerprint": "63ee49158b4b0fdf",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/permissions/permissions.ts:959-1058": {
+   "doc": "skills/agent-creator/references/13-permission-and-consent.md",
+   "excerpt": "* Persist denial tracking state. For async subagents with localDenialTracking, * mutate the local state in place (since setAppState is a no-op). Otherwise, * write to appState as usual. */ function persistDenialState( context: ToolUseContext, newState: DenialTrackingState, ): void { if (context.localDenialTracking) { Object.assign(context.localDenialTracking, newState) } else { context.setAppState\u2026",
+   "fingerprint": "61fe0aa62a4af72f",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/planModeV2.ts:31-43": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export function getPlanModeV2ExploreAgentCount(): number { if (process.env.CLAUDE_CODE_PLAN_V2_EXPLORE_AGENT_COUNT) { const count = parseInt( process.env.CLAUDE_CODE_PLAN_V2_EXPLORE_AGENT_COUNT, 10, ) if (!isNaN(count) && count > 0 && count <= 10) { return count } } return 3 }",
+   "fingerprint": "519948276ff36ff8",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/planModeV2.ts:5-29": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "export function getPlanModeV2AgentCount(): number { // Environment variable override takes precedence if (process.env.CLAUDE_CODE_PLAN_V2_AGENT_COUNT) { const count = parseInt(process.env.CLAUDE_CODE_PLAN_V2_AGENT_COUNT, 10) if (!isNaN(count) && count > 0 && count <= 10) { return count } } const subscriptionType = getSubscriptionType() const rateLimitTier = getRateLimitTier() if ( subscriptionType\u2026",
+   "fingerprint": "6c423ae04f1b11ec",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/planModeV2.ts:50-60": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "export function isPlanModeInterviewPhaseEnabled(): boolean { // Always on for ants if (process.env.USER_TYPE === 'ant') return true const env = process.env.CLAUDE_CODE_PLAN_MODE_INTERVIEW_PHASE if (isEnvTruthy(env)) return true if (isEnvDefinedFalsy(env)) return false return getFeatureValue_CACHED_MAY_BE_STALE( 'tengu_plan_mode_interview_phase', false,",
+   "fingerprint": "3ae09ac32e5da0d5",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/planModeV2.ts:66-71": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "/** * tengu_pewter_ledger \u2014 plan file structure prompt experiment. * * Controls the Phase 4 \"Final Plan\" bullets in the 5-phase plan mode * workflow (messages.ts getPlanPhase4Section). 5-phase is 99% of plan * traffic; interview-phase (ants) is untouched as a reference population.",
+   "fingerprint": "cf0c354bf59c34a8",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/planModeV2.ts:76-78": {
+   "doc": "skills/agent-creator/references/15-planning.md",
+   "excerpt": "* Baseline (control, 14d ending 2026-03-02, N=26.3M): * p50 4,906 chars | p90 11,617 | mean 6,207 | 82% Opus 4.6 * Reject rate monotonic with size: 20% at <2K \u2192 50% at 20K+",
+   "fingerprint": "16251890de99cdd5",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/sandbox/sandbox-adapter.ts:471-471": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "return settings?.sandbox?.autoAllowBashIfSandboxed ?? true",
+   "fingerprint": "dbc7faa3cdff0f94",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/sandbox/sandbox-adapter.ts:550-556": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "* If the user explicitly enabled sandbox (sandbox.enabled: true in settings) * but it cannot actually run, return a human-readable reason. Otherwise * return undefined. * * Fix for #34044: previously isSandboxingEnabled() silently returned false * when dependencies were missing, giving users zero feedback that their * explicit security setting was being ignored. This is a security footgun \u2014",
+   "fingerprint": "8ad385fb5b124de6",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/sessionStorage.ts:1408-1451": {
+   "doc": "skills/agent-creator/references/08-state-persistence.md",
+   "excerpt": "export async function recordTranscript( messages: Message[], teamInfo?: TeamInfo, startingParentUuidHint?: UUID, allMessages?: readonly Message[], ): Promise<UUID | null> { const cleanedMessages = cleanMessagesForLogging(messages, allMessages) const sessionId = getSessionId() as UUID const messageSet = await getSessionMessages(sessionId) const newMessages: typeof cleanedMessages = [] let startingP\u2026",
+   "fingerprint": "016feb6bb3745017",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/sessionStorage.ts:1451-1451": {
+   "doc": "skills/agent-creator/references/08-state-persistence.md",
+   "excerpt": "export async function recordSidechainTranscript(",
+   "fingerprint": "303fc6d6c25ebc5d",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/sessionStorage.ts:1494-1494": {
+   "doc": "skills/agent-creator/references/08-state-persistence.md",
+   "excerpt": "export async function recordContentReplacement(",
+   "fingerprint": "b38f610f1eef5b41",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/sessionStorage.ts:229-229": {
+   "doc": "skills/agent-creator/references/08-state-persistence.md",
+   "excerpt": "export const MAX_TRANSCRIPT_READ_BYTES = 50 * 1024 * 1024",
+   "fingerprint": "784d8a262d9170e9",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/sessionStorage.ts:236-262": {
+   "doc": "skills/agent-creator/references/08-state-persistence.md",
+   "excerpt": "export function setAgentTranscriptSubdir( agentId: string, subdir: string, ): void { agentTranscriptSubdirs.set(agentId, subdir) } export function clearAgentTranscriptSubdir(agentId: string): void { agentTranscriptSubdirs.delete(agentId) } export function getAgentTranscriptPath(agentId: AgentId): string { // Same sessionProjectDir consistency as getTranscriptPathForSession \u2014 // subagent transcript\u2026",
+   "fingerprint": "8b28dbc32a27dfab",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/sessionStorage.ts:264-303": {
+   "doc": "skills/agent-creator/references/08-state-persistence.md",
+   "excerpt": "export type AgentMetadata = { agentType: string /** Worktree path if the agent was spawned with isolation: \"worktree\" */ worktreePath?: string /** Original task description from the AgentTool input. Persisted so a * resumed agent's notification can show the original description instead * of a placeholder. Optional \u2014 older metadata files lack this field. */ description?: string } /** * Persist the \u2026",
+   "fingerprint": "9fef75f03c06ce0c",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/timeouts.ts:2-3": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "const DEFAULT_TIMEOUT_MS = 120_000 // 2 minutes const MAX_TIMEOUT_MS = 600_000 // 10 minutes",
+   "fingerprint": "4b0b73ebcaf781b8",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/toolResultStorage.ts:109-109": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "export const PREVIEW_SIZE_BYTES = 2000",
+   "fingerprint": "28ea442975ac02c8",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/toolResultStorage.ts:30-30": {
+   "doc": "skills/agent-creator/references/02-tools.md",
+   "excerpt": "export const PERSISTED_OUTPUT_TAG = '<persisted-output>'",
+   "fingerprint": "49cbb676d9b8724c",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/toolSearch.ts:45-49": {
+   "doc": "skills/agent-creator/case-studies/claude-code.md",
+   "excerpt": "* Default percentage of context window at which to auto-enable tool search. * When MCP tool descriptions exceed this percentage (in tokens), tool search is enabled. * Can be overridden via ENABLE_TOOL_SEARCH=auto:N where N is 0-100. */ const DEFAULT_AUTO_TOOL_SEARCH_PERCENTAGE = 10 // 10%",
+   "fingerprint": "2984f240bdf34758",
+   "version": "claude-code-2.1.88"
+  },
+  "utils/toolSearch.ts:96-99": {
+   "doc": "skills/agent-creator/references/11-skills-progressive-disclosure.md",
+   "excerpt": "* Approximate chars per token for MCP tool definitions (name + description + input schema). * Used as fallback when the token counting API is unavailable. */ const CHARS_PER_TOKEN = 2.5",
+   "fingerprint": "b789c744e6837323",
+   "version": "claude-code-2.1.88"
+  }
+ },
+ "count": 261,
+ "source": "saved/claude-code-v-2.1.88/package/src-extracted/src",
+ "version": "claude-code-2.1.88"
+}

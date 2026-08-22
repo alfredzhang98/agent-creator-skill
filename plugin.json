@@ -1,7 +1,7 @@
 {
   "name": "agent-creator",
-  "version": "0.2.0",
-  "description": "Distilled design knowledge from production LLM agents, packaged as reusable skills for building new agents: loop, tools, verifier, providers, prompts, cost guardrails, state, sandboxing.",
+  "version": "0.5.0",
+  "description": "Design knowledge from production LLM agents (Articraft, Claude Code) distilled into 15 module references with verified file:line provenance, plus a working stdlib-only agent core: tool contract, dispatch gauntlet, permission ladder, hooks, progressive disclosure, and a typed-transition loop.",
   "author": {
     "name": "alfredzhang98"
   },

@@ -1,6 +1,6 @@
 # 03. Evaluator & Verifier (Compile Feedback)
 
-**Maps to:** Evaluator/Verifier · Guardrails · State/Context · Executor · **Distilled from:** Articraft `agent/feedback.py`, `agent/compiler.py`, `agent/harness_compile.py`
+**Maps to:** Evaluator/Verifier · Guardrails · State/Context · Executor · **Distilled from:** Articraft `agent/feedback.py`, `agent/compiler.py`, `agent/harness_compile.py` · Claude Code 2.1.88 `src/services/diagnosticTracking.ts`, `src/services/lsp/`
 
 ## Why this module exists
 
@@ -46,6 +46,93 @@ Authored tests can declare `allow_overlap(a, b, reason=...)` / `allow_isolated_p
 
 ### Legacy heuristics off the default path
 Geometry scale-anomaly warnings, cwd-relative-path scans, and mesh connectivity checks still exist (`agent/compiler.py:394-423`, `agent/compiler.py:450-568`, `agent/compiler.py:734-767`) but are no longer called during full validation — a test asserts the two warning emitters must NOT run (`tests/agent/test_compiler.py:329-335`; the mesh-connectivity check is uncalled but not covered by that assertion). Their text classifiers remain in `feedback.py` for back-compat with stored records. Lesson: when migrating checks between layers, keep old classifiers, delete or clearly mark dead emitters.
+
+## Comparative: Claude Code's advisory verifier
+
+Articraft's verifier is a **gate**: no fresh compile, no success. Claude Code
+has no gate — and it would be wrong to conclude it has no verifier. It has a
+substantial one, running continuously, that never blocks. That third position
+is the one most real agents actually occupy, and it has its own design rules.
+
+**Tier 2 exists, and it is the common case.** Between "a compiler decides" and
+"a human decides" sits: real checkers exist (type checker, linter, tests,
+schema validator) but none of them answers "is the task done". The correct
+response is not to skip verification — it is to run the checkers and feed their
+output back as typed signals the model is expected to act on, while the
+authority to refuse a finish attempt lives elsewhere.
+
+**The defining mechanism is a baseline diff scoped by attribution.** Running a
+type checker over a real repository prints hundreds of pre-existing problems.
+Report them all and the model either fixes unrelated code or learns the channel
+is noise; both are worse than silence. Instead, the mutating tools snapshot a
+file's diagnostics *before* touching it —
+`diagnosticTracker.beforeFileEdited(path)` in
+`tools/FileEditTool/FileEditTool.ts:425` and
+`tools/FileWriteTool/FileWriteTool.ts:247` — and afterwards only findings absent
+from that baseline are surfaced (`services/diagnosticTracking.ts:266-269`).
+Three details make it work:
+
+- **Files with no baseline are ignored entirely**
+  (`services/diagnosticTracking.ts:210-212`). A problem in a file this agent
+  never touched is not attributable to it and not actionable by it.
+- **The baseline advances after each report**
+  (`services/diagnosticTracking.ts:278-279`), so a finding is delivered exactly
+  once. Repeating a known problem trains the model to skim.
+- **An empty baseline is recorded explicitly**
+  (`services/diagnosticTracking.ts:174-176`). "Clean before" and "never looked"
+  must be distinguishable, or the first error in a clean file cannot be
+  attributed.
+
+The one thing to add when porting: diff on an identity that **excludes the line
+number**. An edit above a pre-existing error shifts its line, and a
+line-sensitive key resurfaces it as new — the most common false positive in
+this design.
+
+**The severity vocabulary is the same one Articraft uses.** LSP severities map
+to `Error | Warning | Info | Hint` (`services/lsp/passiveFeedback.ts:18-35`),
+which is Articraft's `failure / warning / note` with one more rung. Two
+independently designed agents converging on a small ordered severity enum,
+shared across producer, renderer and persistence, is about as strong a signal
+as this library gets.
+
+**Feedback is suppressed when the agent cannot act on it.** Diagnostics are not
+injected unless the agent has a shell tool — "diagnostics are only useful if
+the agent has the Bash tool to act on them"
+(`utils/attachments.ts:2857-2862`). Context spent on a report the agent cannot
+respond to is worse than wasted: it teaches the model that this channel does
+not matter.
+
+**Where the two agents genuinely disagree: one issue, or all of them.**
+Articraft selects a single primary issue by a priority ladder, on the grounds
+that a model handed N co-equal failures patches the easiest rather than the
+causal one. Claude Code reports every new finding at once and keeps the list
+short a different way — by attribution-scoping and reporting once, so the list
+is naturally small. Neither is universally right: the ladder wins when your
+failures are usually one cause with many symptoms (a compile error cascading
+into ten QC violations); reporting all wins when they are usually independent
+(three unrelated type errors in three files). Choose by which shape your
+domain actually produces, and note that only the ladder needs you to *rank*
+failure kinds — which is real design work.
+
+**Verification is also delegated outward.** `PostToolUse` hooks run project
+linters and tests (reference 12); a `Stop` hook can block a finish attempt and
+demand another turn (`query.ts:1267-1306`); a bundled `verify` skill instructs
+the agent to actually run the app rather than reason about whether it works
+(`skills/bundled/verify.ts:17-29`). The verifier is not one module — it is a
+protocol that several subsystems participate in.
+
+**What this means for the library's central rule.** Reference 03's invariant
+stands, restated with the middle tier made explicit:
+
+> Build the strongest verifier the domain permits, and be explicit about
+> whether it **gates** or **advises**. A gating verifier owns the exit. An
+> advisory one owns the feedback channel and must be attribution-scoped and
+> report-once, or the model stops reading it. Either way, exactly one authority
+> refuses a finished attempt — the verifier if it can, the human if it cannot.
+> Zero authorities is the failure mode; an advisory verifier plus a human is
+> not zero.
+
+`templates/agentkit/verifier.py` implements the tier-2 pattern.
 
 ## Design decisions
 
@@ -250,6 +337,31 @@ class FeedbackLoop:
 - When migrating checks out of a layer, delete or clearly mark the dead emitters and add a test asserting they no longer run (Articraft does this for two of its three legacy emitters: `tests/agent/test_compiler.py:329-335`), but keep their text classifiers for back-compat with stored records.
 
 ## Checklist
+
+**First, decide the tier** — a checklist for the wrong one is worse than none:
+
+- [ ] Stated explicitly whether your verifier **gates** the exit or **advises**
+- [ ] Exactly one authority can refuse a finished attempt (verifier, or human)
+
+*If advisory (tier 2 — the common case):*
+
+- [ ] Findings are diffed against a baseline captured **before** the change
+- [ ] The diff identity excludes the line number but preserves multiplicity,
+      so a shifted error is not "new" and a second occurrence still is
+- [ ] Paths are normalised on both write and read, or a relative/absolute
+      mismatch silently discards every finding
+- [ ] A checker that could not run is distinguishable from a clean result, and
+      does **not** advance the baseline
+- [ ] Findings for files the agent never touched are dropped, not reported
+- [ ] Each finding is reported exactly once
+- [ ] Severity is normalised on construction, so a checker's own vocabulary
+      cannot crash the diff or silently fail to block
+- [ ] Reports are capped, ordered by severity, and say what they omitted
+- [ ] Nothing is injected when the agent has no tool that could act on it
+- [ ] The tracker is reset per user turn, and renames move their baseline
+
+*If gating (tier 1):*
+
 
 - [ ] Define a frozen signal type: severity (only `failure` blocks), stable kind/code slugs, source, details, sha1 dedupe key.
 - [ ] Pre-declare a spec table for every known finding class; add a generic fallback spec so no text is ever dropped.

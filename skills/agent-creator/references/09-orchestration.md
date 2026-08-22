@@ -1,6 +1,6 @@
 # 09. Run Orchestration & Entry Points
 
-**Maps to:** Executor · State/Context · Memory · Tools · Evaluator/Verifier · Cost · **Distilled from:** Articraft `agent/runner.py`, `agent/runner_cli.py`, `agent/single_run.py`, `agent/run_context.py`, `agent/edit.py`, `agent/rerun.py`, `agent/examples.py`, `agent/tools/find_examples.py`, `agent/tui/single_run.py`
+**Maps to:** Executor · State/Context · Memory · Tools · Evaluator/Verifier · Cost · **Distilled from:** Articraft `agent/runner.py`, `agent/runner_cli.py`, `agent/single_run.py`, `agent/run_context.py`, `agent/edit.py`, `agent/rerun.py`, `agent/examples.py`, `agent/tools/find_examples.py`, `agent/tui/single_run.py` · Claude Code 2.1.88 `src/tools/AgentTool/`, `src/constants/tools.ts`
 
 ## Why this module exists
 
@@ -43,6 +43,66 @@ The examples library (`agent/examples.py`) is a BM25 index over curated markdown
 ### Display-only observer with spinner-aware logging
 
 `SingleRunDisplay` (`agent/tui/single_run.py:46-64`) is a pure observer: the harness calls `start_turn`/`end_turn`, `add_llm_call`, `add_tool_call`, `add_compile_result`, `add_thinking_summary`, etc., and the display prints cargo-build-style indented lines (`Turn 1/100`, `llm 39.2K tokens $0.0047 4.1s`, `tool write_code ✓ 0.3s`). It contains zero control-flow logic — the loop never asks the display anything. One reusable trick: a live LLM-wait spinner runs on a background thread, and `LLMWaitAwareStreamHandler` — a `logging.StreamHandler` subclass registered globally with a lock-guarded active-display slot (`agent/tui/single_run.py:21-43`) — calls `display.prepare_for_external_output()` before emitting any log record, clearing the in-place spinner line so async log output never interleaves with the live timer.
+
+## Comparative: Claude Code's subagents
+
+Articraft's derived runs (fork/edit/rerun) are about *reproducing* a run. Claude
+Code's subagent layer is about *delegating* one, and contributes a declarative
+contract worth copying whole.
+
+**An agent is a data structure, not a code path.** `BaseAgentDefinition`
+(`tools/AgentTool/loadAgentsDir.ts:106-133`) declares: `agentType`,
+`whenToUse`, `tools` / `disallowedTools`, `skills` to preload, `mcpServers`,
+`hooks` scoped to the agent's session, `model`, `effort`, `permissionMode`,
+`maxTurns`, `memory` scope, `isolation` (`worktree` | `remote`), `background`,
+`initialPrompt`, `requiredMcpServers`, and `omitClaudeMd`. Definitions load from
+built-in, plugin, user, project, flag and policy sources with a fixed
+precedence, deduplicated by `agentType` (`loadAgentsDir.ts:193-216`). New agent
+types are files, not commits.
+
+**Capability restriction is declared per agent *class*, with the reasons
+written down.** Four explicit sets in one file
+(`constants/tools.ts:36-112`): every subagent loses the delegation tool (no
+recursion), the plan-mode tools (a main-thread abstraction), the interactive
+question tool, and the task-stop tool (needs main-thread state); async agents get
+a positive allowlist instead; coordinator-mode agents get only agent-management
+tools. Each exclusion carries its rationale inline — recursion prevention,
+main-thread-only abstractions, singleton conflicts — which is what keeps the
+list from decaying into folklore.
+
+**Allowed tools *replace* rather than extend.** When a subagent is given an
+allowlist it replaces all allow rules "so the agent only has what's explicitly
+listed (parent approvals don't leak through)" (`tools/AgentTool/runAgent.ts:297-300`).
+Inherited consent is the subtlest privilege-escalation path in a delegating
+agent: the parent's "yes, run that build" must not become the child's standing
+grant.
+
+**Context inheritance is a budget decision.** `omitClaudeMd` drops the project
+instruction hierarchy for read-only agents that do not need commit or lint
+guidelines — annotated as saving "~5-15 Gtok/week across 34M+ Explore spawns"
+(`loadAgentsDir.ts:128-132`). At fleet scale, what you *do not* send to a
+subagent is a first-order design decision.
+
+**Isolation is declarative.** `isolation: 'worktree'` runs the agent in its own
+git worktree so parallel agents mutating files cannot conflict; the path is
+persisted to metadata so a resumed agent restores the right cwd
+(`runAgent.ts:315-317`). Compare Articraft's staging-then-promote: same
+instinct — in-flight work lives somewhere disposable — applied to concurrency
+rather than to durability.
+
+**Delegation returns a typed union, not prose.** The published output schema
+distinguishes a completed run (content, `totalToolUseCount`, `totalDurationMs`,
+full usage breakdown) from an async launch (`agentId`, `outputFile`,
+`canReadOutputFile`) — `sdk-tools.d.ts:55-106`. The caller can tell "here is
+the answer" from "here is a handle" without parsing English.
+
+**The orchestration substrate is a queue, not a call stack.** Notifications are
+addressed by `agentId`; the main thread drains only messages with no agent id,
+subagents drain only task-notifications addressed to them, and user prompts
+never reach a subagent even if one is tagged with an id
+(`query.ts:1560-1578`). Agents are addressable and resumable rather than being
+one-shot function calls — which is what makes teams, background tasks and
+mid-run messaging possible at all.
 
 ## Design decisions
 
