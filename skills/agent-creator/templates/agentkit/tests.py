@@ -32,6 +32,7 @@ sys.path[:0] = [HERE, os.path.join(HERE, "tools"), os.path.dirname(HERE)]
 import cost_meter as CM
 import hooks as H
 import orchestration as O
+import preflight as PF
 import prompts as PR
 import provider as PV
 import loop as L
@@ -1000,6 +1001,102 @@ def patch_tool():
 # All four cases below are defects the first smoke test against the live
 # registry actually produced, before any of this shipped.
 
+# --- model preflight ---------------------------------------------------------
+
+@case
+def t_a_family_name_is_refused_not_resolved():
+    """`gpt-5.6` does not exist; luna, sol and terra do.
+
+    The generator wrote the family name from memory. Three real models matched
+    it. Picking the first is how an agent quietly runs on a model nobody chose,
+    with the bill as the notification.
+    """
+    avail = ["gpt-5.6-luna", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.5", "o4-mini"]
+    r = PF.resolve_model("gpt-5.6", avail)
+    check("a family name never resolves", not r.ok and r.status == PF.AMBIGUOUS,
+          r.status)
+    check("every sibling is named", set(r.candidates) ==
+          {"gpt-5.6-luna", "gpt-5.6-sol", "gpt-5.6-terra"}, str(r.candidates))
+    check("the refusal says why choosing matters",
+          "price" in r.message and "not choose for you" in r.message)
+    check("no model is smuggled out anyway", r.resolved == "")
+    try:
+        r.raise_for_status()
+        check("raise_for_status refuses an ambiguous model", False)
+    except PF.ModelNotResolved:
+        check("raise_for_status refuses an ambiguous model", True)
+
+    check("a single near-match is still not auto-taken",
+          PF.resolve_model("gpt-5.6", ["gpt-5.6-luna"]).status == PF.AMBIGUOUS)
+    check("an exact id passes", PF.resolve_model("gpt-5.6-sol", avail).ok)
+    check("and returns itself, not a neighbour",
+          PF.resolve_model("gpt-5.6-sol", avail).resolved == "gpt-5.6-sol")
+
+    miss = PF.resolve_model("gpt-5.7", avail)
+    check("an unknown id is MISSING with hints, never a substitution",
+          miss.status == PF.MISSING and miss.resolved == "" and miss.candidates)
+
+
+@case
+def t_an_unavailable_catalogue_is_not_a_pass():
+    """Silence from the provider must not read as approval."""
+    r = PF.resolve_model("anything", [])
+    check("no catalogue means UNVERIFIED, not EXACT", r.status == PF.UNVERIFIED)
+    check("and it says the id is unchecked", "unchecked" in r.message)
+    check("but it does not claim the model is fine", not r.ok)
+    rep = PF.preflight("openai", "anything", [], env={"OPENAI_API_KEY": "x"})
+    check("preflight warns rather than blocking when it cannot check", rep.ok)
+    check("and the warning is visible in the report", "unchecked" in rep.render()
+          or "not attempted" in rep.render())
+
+
+@case
+def t_catalogue_shapes_all_parse():
+    """Three providers, three shapes; a misparse sends people hunting."""
+    check("openai/anthropic shape", PF.parse_model_list(
+        {"data": [{"id": "gpt-5.6-sol"}, {"id": "claude-opus-5"}]})
+        == ["gpt-5.6-sol", "claude-opus-5"])
+    check("google strips the resource prefix", PF.parse_model_list(
+        {"models": [{"name": "models/gemini-3-pro"}]}) == ["gemini-3-pro"])
+    check("a bare list works for proxies",
+          PF.parse_model_list(["a", "b"]) == ["a", "b"])
+    check("an unrecognised shape yields nothing, not a partial guess",
+          PF.parse_model_list({"result": "surprise"}) == []
+          and PF.parse_model_list("nope") == [])
+    check("malformed rows are dropped, good ones kept", PF.parse_model_list(
+        {"data": [{"id": ""}, 7, {"nope": 1}, {"id": "ok"}]}) == ["ok"])
+
+
+@case
+def t_preflight_fails_before_turn_one_and_says_what_to_do():
+    avail = ["gpt-5.6-sol"]
+    bad = PF.preflight("openai", "gpt-5.6", avail, env={})
+    check("a missing key is fatal", not bad.ok)
+    names = [c.name for c in bad.failures]
+    check("both the key and the model are reported, not just the first",
+          "api key" in names and "model id" in names, str(names))
+    check("the key name is named and the value never is",
+          any("OPENAI_API_KEY is unset" in c.detail for c in bad.failures))
+
+    good = PF.preflight("openai", "gpt-5.6-sol", avail,
+                        PF.Requirement(tools=True, min_context_tokens=100_000),
+                        limits={"context_window": 400_000, "supports_tools": True},
+                        env={"OPENAI_API_KEY": "sk-x"}, ping_ok=True)
+    check("a fully checked agent is ready", good.ok, good.render())
+    check("the report is readable", "=> ready" in good.render())
+
+    small = PF.preflight("openai", "gpt-5.6-sol", avail,
+                         PF.Requirement(min_context_tokens=1_000_000),
+                         limits={"context_window": 400_000},
+                         env={"OPENAI_API_KEY": "sk-x"})
+    check("an insufficient context window blocks the build", not small.ok)
+    check("a failed live call blocks it too",
+          not PF.preflight("openai", "gpt-5.6-sol", avail,
+                           env={"OPENAI_API_KEY": "sk-x"}, ping_ok=False).ok)
+    check("an unwired catalogue still prints the request to make",
+          "curl" in PF.curl_for("anthropic") and "anthropic-version" in PF.curl_for("anthropic"))
+
+
 @case
 def t_block_scalars_parse_or_the_skill_is_invisible():
     """`description: >-` came back as the literal string ">-".
@@ -1215,6 +1312,37 @@ def t_merge_rewards_agreement_across_phrasings():
           all(c.skill_id != "junk" for c in
               SA.merge([[SA.Candidate("o/r/junk", "junk", "o/r", 2)]])))
     check("an empty fold is empty, not an error", SA.merge([]) == [])
+
+
+@case
+def t_a_missing_description_is_unknown_not_irrelevant():
+    """Registry rows carry no description, so relevance needs a second fetch.
+
+    Repos that use a nested layout return nothing for that fetch. Scoring the
+    empty result as 0.0 demoted them for having an unusual directory tree.
+    """
+    cap = "profile pytorch training for memory and throughput bottlenecks"
+    good = ("PyTorch deep learning patterns for building efficient, "
+            "reproducible training pipelines and data loading")
+    r = SA.relevance(cap, good)
+    check("a real description scores", r is not None and r > 0, str(r))
+    check("no description is unknown, not zero", SA.relevance(cap, "") is None)
+    check("whitespace counts as no description", SA.relevance(cap, "   ") is None)
+    check("an unrelated description scores lower than a related one",
+          SA.relevance(cap, "Send USDC on the Binance chain") < r)
+
+    c = SA.Candidate("affaan-m/ecc/pytorch-patterns", "pytorch-patterns",
+                     "affaan-m/ecc", 7647)
+    urls = SA.skill_md_urls(c)
+    check("the standard layout is tried first",
+          urls[0] == "https://raw.githubusercontent.com/affaan-m/ecc/main/"
+                     "skills/pytorch-patterns/SKILL.md", urls[0])
+    check("both branches and every container are covered",
+          any("/master/" in u for u in urls) and len(urls) >= 6, str(len(urls)))
+    check("the description is read out of frontmatter",
+          SA.describe("---\nname: x\ndescription: >-\n  a b\n---\nbody") == "a b")
+    check("a body with no frontmatter yields no description",
+          SA.describe("just prose") == "" and SA.describe("") == "")
 
 
 @case

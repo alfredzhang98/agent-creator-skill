@@ -275,6 +275,45 @@ class ChatCompletionsMixin:
         return {}                            # no token telemetry => no compaction
 ```
 
+## Preflight: the model ID is not something you remember
+
+Companion: `templates/agentkit/preflight.py`.
+
+A model that writes an agent picks the agent's model ID out of its own
+training data. That data is always behind the provider's catalogue, and it
+says nothing about which models *this account* is entitled to — so every
+generated agent carries a guess wearing the clothes of a fact. The failure is
+not exotic. A generator asked for `gpt-5.6`; no such model existed, while the
+account had `gpt-5.6-luna`, `gpt-5.6-sol` and `gpt-5.6-terra`.
+
+    Never write a model ID from memory. Ask the provider, then match exactly.
+
+`resolve_model()` has four outcomes and three are refusals:
+
+| Outcome | Meaning |
+|---|---|
+| `EXACT` | the ID is in the catalogue verbatim — the only usable result |
+| `AMBIGUOUS` | the ID is the family of one or more real models — refused |
+| `MISSING` | nothing matches; nearest names offered as a hint, never a substitution |
+| `UNVERIFIED` | no catalogue was reachable — reported, never treated as a pass |
+
+**Never auto-pick a variant.** Siblings differ in price, latency, context and
+capability. Resolving `gpt-5.6` to the first match is how an agent ends up
+running on a model nobody chose, with the invoice as the notification. Even a
+*single* match is refused: a near-match is not a match.
+
+`parse_model_list()` accepts the three catalogue shapes — OpenAI-compatible and
+Anthropic's `{"data": [{"id": ...}]}`, and Google's `{"models": [{"name":
+"models/..."}]}` — and yields `[]` for anything unrecognised, because a
+misparse would report a present model as MISSING and send someone hunting.
+
+`preflight()` folds in the rest of what must hold before turn one: the key's
+env var is set (presence only — the value is never read into a message), the
+resolved model meets the declared `Requirement` for context, output and
+modality, and a one-token call actually succeeds. Listing and pinging are
+network, so they sit behind `ModelCatalogue`; `UnconfiguredCatalog` refuses and
+`curl_for()` prints the exact request to run by hand.
+
 ## Pitfalls
 
 - Dual source of truth corrupts silently: a provider keeping native canonical history must **drop incoming assistant messages after the first response** (`openai.py:788-807`, `gemini.py:385-386`) and reset its store when the loop's message list shrinks (`gemini.py:374-377`) — miss either and every turn duplicates model output.

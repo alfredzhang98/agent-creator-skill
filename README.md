@@ -42,7 +42,7 @@ loop with tools bolted on:
 | 02 | **Tool layer** | A declarative tool contract whose safety predicates are functions *of the input*. Seven-stage dispatch gauntlet. Every failure returns as data the model can correct from — never an exception. Results cap per tool and per message, overflowing to disk instead of truncating. |
 | 03 | **Verifier** | Gating (refuses the exit) or advisory (reports without blocking), chosen deliberately. The advisory tier is attribution-scoped and report-once, so the model is told what *its* edit broke rather than what the repository already had wrong. |
 | 04 | **Sandbox** | An OS-level boundary contract for anything the model generates — filesystem allow/deny, network allowlists, process caps — with a fail-closed default. Isolation is what buys the agent autonomy. |
-| 05 | **Provider layer** | One seam over N backends, plus the five-stage context ladder: per-message result budget → snip → microcompact → collapse → summarise, cheapest and most reversible first. |
+| 05 | **Provider layer** | One seam over N backends, a preflight that resolves the model ID against the account's live catalogue instead of the model's memory (and refuses a family name rather than picking a variant), plus the five-stage context ladder: per-message result budget → snip → microcompact → collapse → summarise, cheapest and most reversible first. |
 | 06 | **Prompt assembly** | Prompt-as-code with memoised sections, an explicit cacheable/volatile boundary, and cache-breaking that must be justified at the call site. |
 | 07 | **Cost control** | Hard USD cap checked before *and* after each call, per-model ledgers with cache tokens broken out, and unknown pricing that estimates-and-flags rather than silently disabling the cap. |
 | 08 | **State** | Append-only transcript, atomically written metadata, staging-then-promote for artifacts, and tolerant readback that repairs orphaned tool calls on resume. |
@@ -81,7 +81,7 @@ agent core, not pseudocode. Stdlib only, no dependencies:
 
 ```bash
 python3 skills/agent-creator/templates/agentkit/selftest.py   # worked example
-python3 skills/agent-creator/templates/agentkit/tests.py      # 222 assertions
+python3 skills/agent-creator/templates/agentkit/tests.py      # 257 assertions
 ```
 
 > **Audited.** An independent multi-agent review ([docs/AUDIT.md](docs/AUDIT.md))

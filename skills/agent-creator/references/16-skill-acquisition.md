@@ -94,6 +94,15 @@ Queries disagree about wording; when they agree about a skill anyway, that is
 the strongest relevance signal available from an index that ships no
 descriptions.
 
+**Registry rows are not enough to choose from.** They carry no description,
+so a name is all the index offers and "profile" matches a PyTorch profiler and
+an EC2 instance profile equally well. The description exists — it is in the
+repo. `skill_md_urls()` builds the raw URLs, `describe()` reads the
+frontmatter, and `relevance()` scores the overlap. It returns `None`, not
+`0.0`, when there is no description: repos using a nested layout legitimately
+return nothing, and scoring that as zero demotes a skill for its directory
+tree rather than its fit.
+
 **Search and install belong to the host.** Searching needs the network;
 installing needs a subprocess. No module in this package spawns a process, so
 `SkillIndex` is a `Protocol` and `UnconfiguredIndex` is the default — the same
@@ -189,6 +198,11 @@ the live registry rather than reasoned about in advance:
   after any update, or your reviewed instructions are gone with no signal.
 - **Speculative installs.** Six "might be useful" skills spend the index budget
   that reference 11 sizes, on every request, whether or not they ever fire.
+- **Choosing from names alone.** The index has no descriptions. Fetch each
+  shortlisted skill's SKILL.md before presenting it, or you are asking a human
+  to judge `data-throughput-accelerator` against `verify-this` by name.
+- **Scoring a missing description as irrelevant.** Unknown and irrelevant must
+  stay distinguishable.
 - **Treating "no skill found" as failure.** It is the common case. The question
   is cheap to ask and the answer is usually "build it" — the point is to have
   asked, not to always find something.
@@ -199,6 +213,8 @@ the live registry rather than reasoned about in advance:
       say so in the declaration — "no skill found for X" is a real answer.
 - [ ] Registry rows are validated, not indexed into. A `source` becomes argv.
 - [ ] Candidates are ranked by relevance; installs feed the verdict only.
+- [ ] Shortlisted candidates were presented with their real descriptions, not
+      just their names.
 - [ ] Provenance and content are separate gates, and both ran.
 - [ ] The audit read the body, not just the file listing.
 - [ ] Nothing is enabled without a pin and a recorded consent.

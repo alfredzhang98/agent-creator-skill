@@ -41,12 +41,13 @@ subsystem without the rest of the kit.
 | `agentkit/state.py` | Transcript, metadata, staging→promote, tolerant readback + orphan repair | `08` |
 | `agentkit/memory.py` | Non-derivability rule, manifest → cheap-model recall, staleness, write validation | `14` |
 | `agentkit/planner.py` | Plan mode phase machine, guarded transitions, durable plan file | `15` |
+| `agentkit/preflight.py` | Model ID resolved against the live catalogue, never from memory; ambiguous families refused; key/capability/ping checks before turn one | `05` |
 | `agentkit/provider.py` | Backend seam: caller-aware retry, usage normalisation, pure compaction decisions | `05` |
 | `agentkit/prompts.py` | Build matrix, memoised sections, declared cache boundary | `06` |
 | `agentkit/orchestration.py` | Staged exit codes, staging→promote, fork/rerun, declarative subagents | `09` |
 | `agentkit/tools/` | Read · Write · Edit · Patch · Glob · Grep · TodoWrite · AskUserQuestion · Shell · ToolSearch · Skill · Delegate | `02`, `11`, `13` |
 | `agentkit/selftest.py` | Worked example: builds an agent and drives it | — |
-| `agentkit/tests.py` | 222 regression assertions, named for the defects they keep fixed | — |
+| `agentkit/tests.py` | 257 regression assertions, named for the defects they keep fixed | — |
 
 Not templated (see the reference docs directly): prompts-as-code
 (`06-prompts.md`), state persistence (`08-state-persistence.md`),

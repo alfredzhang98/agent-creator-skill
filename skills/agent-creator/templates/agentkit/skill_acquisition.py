@@ -70,19 +70,41 @@ DEFAULT_TRUSTED_OWNERS = frozenset({
     "anthropics", "vercel-labs", "vercel", "microsoft", "nvidia", "openai",
 })
 
-#: Phrases in a skill body that try to relax the host agent's own rules. A
+#: Language in a skill body that tries to relax the host agent's own rules. A
 #: skill legitimately says "use the USD sublayer convention"; it has no business
-#: saying "skip confirmation". Substring match on the lowercased body: cheap,
-#: over-triggers on discussion of the topic, and over-triggering is the correct
-#: failure direction for a gate a human reads.
-OVERRIDE_PHRASES = (
-    "ignore previous", "ignore prior", "disregard the above", "disregard previous",
-    "regardless of your instructions", "override the system prompt",
-    "without asking", "without confirmation", "skip confirmation",
-    "do not ask the user", "don't ask the user", "no need to ask",
-    "auto-approve", "auto approve", "bypass permission", "bypass the sandbox",
-    "disable the sandbox", "--dangerously", "yolo mode",
+#: saying "skips confirmation prompts".
+#:
+#: These are regexes, not substrings, because the first version was substrings
+#: and it missed the very first real skill it was pointed at: `find-skills`
+#: says "skips confirmation prompts" and the pattern read "skip confirmation".
+#: One letter. A gate that a plural defeats is not a gate.
+#:
+#: They over-trigger on skills that legitimately *discuss* permissions, and
+#: that is the correct failure direction for something a human reads.
+OVERRIDE_PATTERNS: tuple[tuple[str, str], ...] = (
+    ("ignore prior instructions",
+     r"\b(ignore|disregard)\b[^.\n]{0,30}\b(previous|prior|above|earlier|system)\b"),
+    ("override the system prompt",
+     r"\b(override|overrule|supersede)\b[^.\n]{0,25}\b(system|prompt|instruction)"),
+    ("regardless of instructions",
+     r"\bregardless of\b[^.\n]{0,30}\binstruction"),
+    ("skip confirmation",
+     r"\bskip\w*\b[^.\n]{0,25}\b(confirm\w*|prompt\w*|approval\w*|permission\w*)"),
+    ("act without confirmation",
+     r"\bwithout\b[^.\n]{0,20}\b(asking|confirm\w*|approval|permission\w*|prompting)"),
+    ("do not ask the user",
+     r"\b(do not|don't|never|no need to)\b[^.\n]{0,15}\bask\b"),
+    ("auto-approve",
+     r"\bauto[\s-]?(approv|accept|confirm|grant)\w*|\bautomatically\s+(approv|accept|grant)\w*"),
+    ("bypass or disable the sandbox",
+     r"\b(bypass|disable|turn off|circumvent)\b[^.\n]{0,25}\b(sandbox|permission\w*|guard\w*|safety|confirmation)"),
+    ("dangerous CLI flag", r"--dangerously[\w-]*|\byolo\b"),
+    ("unattended install",
+     r"(?:^|\s)(?:-y|--yes)(?:\s|$)|(?:^|\s)(?:-g|--global)(?:\s|$)"),
 )
+
+_OVERRIDE_RE = tuple((label, re.compile(pat, re.I | re.M))
+                     for label, pat in OVERRIDE_PATTERNS)
 
 #: Body markers suggesting the skill reaches the network when it runs.
 NETWORK_MARKERS = ("curl ", "wget ", "http://", "https://", "requests.get",
@@ -270,6 +292,70 @@ def parse_search_response(payload: Any) -> list[Candidate]:
             installs=installs if isinstance(installs, int) and installs >= 0 else 0,
         ))
     return out
+
+
+#: Where a repo may keep its skills, per the CLI's documented discovery order.
+SKILL_CONTAINERS = ("skills", "skills/.curated", ".agents/skills", "")
+
+#: Branches to try, in order. Most repos are on the first.
+SKILL_BRANCHES = ("main", "master")
+
+
+def skill_md_urls(candidate: Candidate) -> list[str]:
+    """Raw URLs where this skill's SKILL.md might live, likeliest first.
+
+    Registry rows carry no description, which is why step zero's output is
+    noisy: "profile" matches a PyTorch profiler and an EC2 instance profile
+    equally well, and the only text available to tell them apart is the name.
+    The description exists — it is just in the repo rather than the index.
+    Fetching it before presenting candidates is what turns "three names, two
+    of them junk" into a decision a human can make in one glance.
+
+    Returns candidates rather than one URL because the CLI itself searches
+    several container directories and repos differ on the default branch.
+    """
+    owner_repo = candidate.source
+    out: list[str] = []
+    for branch in SKILL_BRANCHES:
+        for container in SKILL_CONTAINERS:
+            path = f"{container}/{candidate.skill_id}" if container else candidate.skill_id
+            out.append("https://raw.githubusercontent.com/"
+                       f"{owner_repo}/{branch}/{path}/SKILL.md")
+    return out
+
+
+def describe(text: str) -> str:
+    """The description a fetched SKILL.md declares, or "" if it declares none."""
+    if not text or not text.strip():
+        return ""
+    meta, _ = parse_frontmatter(text)
+    desc = meta.get("description")
+    return desc.strip() if isinstance(desc, str) else ""
+
+
+def relevance(capability: str, description: str) -> float | None:
+    """Fraction of the capability's content words the description mentions,
+    or ``None`` when there is no description to judge.
+
+    ``None`` rather than ``0.0`` on purpose. Not every repo uses the standard
+    ``skills/<name>/`` layout, so the fetch legitimately comes back empty — and
+    scoring that as zero demotes a skill for a reason that has nothing to do
+    with whether it fits. Unknown and irrelevant have to stay distinguishable
+    or the ranking quietly punishes an unusual directory tree.
+
+    Deliberately crude otherwise — it is a *sort* over already-shortlisted
+    candidates and a hint for the human reading them, not a gate. Anything
+    cleverer would be a second model call on data a person is about to read.
+    """
+    if not description.strip():
+        return None
+    want = {w for w in _WORD.findall(capability.lower()) if w not in _STOPWORDS}
+    if not want:
+        return None
+    have = set(_WORD.findall(description.lower()))
+    for w in list(have):
+        have.update(_SYNONYMS.get(w, ()))
+    return len(want & have) / len(want)
 
 
 # ---------------------------------------------------------------------------
@@ -482,7 +568,7 @@ class Audit:
         """Everything a human must sign off on, in severity order."""
         out: list[str] = []
         for phrase in self.override_phrases:
-            out.append(f"body tries to relax host rules: {phrase!r}")
+            out.append(f"body tries to relax host rules: {phrase}")
         if self.granted_tools:
             out.append("claims tools: " + ", ".join(self.granted_tools))
         if self.scripts:
@@ -526,7 +612,7 @@ def audit_skill(directory: str, *, max_bytes: int = 1_000_000) -> Audit:
             granted += [str(t).strip() for t in raw if str(t).strip()]
 
     low = body.lower()
-    found_override = tuple(p for p in OVERRIDE_PHRASES if p in low)
+    found_override = tuple(label for label, rx in _OVERRIDE_RE if rx.search(body))
     found_net = [m.strip() for m in NETWORK_MARKERS if m in low]
 
     scripts: list[str] = []

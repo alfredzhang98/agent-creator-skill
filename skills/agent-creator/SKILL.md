@@ -80,6 +80,11 @@ broken, and the user has no way to know that:
 - **A hard budget cap**, checked before and after each call, plus a turn cap.
   If the domain has a second cost axis (GPU time, API quota, physical
   actuation), cap that too and estimate it *before* the call. `07`
+- **A verified model ID.** Never write one from memory — a training cut-off
+  is always behind the provider's catalogue, so every remembered ID is a guess
+  presented as a fact. List the account's models, match exactly, and refuse a
+  family name: `gpt-5.6` matching three siblings is not a typo to correct,
+  those three differ in price and capability. `preflight.py`, `05`
 - **Tool errors as data**, never exceptions. `02`
 - **A typed loop**: named exits, named continuations, recovery ladders. `01`
 - **Staging then promote**, so the durable store only ever holds verified
@@ -134,6 +139,7 @@ Building: <one line: what this agent does>
   Verifier       gating | advisory | human        <- because <reason>
   Delegation     <yes, to what | no>              <- because <reason>
   Skills         <found, with installs+source | none fit, building it>
+  Model          <exact id, checked against the catalogue>   <- always
   Sandbox        <boundary>                       <- always
   Budget         <axes and caps>                  <- always
   Persistence    staging -> promote, traces       <- always
@@ -196,6 +202,20 @@ exit. Built backwards, both get rewritten.
 1. **Action space first** (`10-action-space-sdk.md`): decide what the agent is
    allowed to produce and through which constrained vocabulary. The single
    highest-leverage design decision.
+
+   Also settle the model here, in one call, because it is cheap now and a
+   404 on turn 40 is not:
+
+   ```
+   curl -sS https://api.openai.com/v1/models -H "Authorization: Bearer $OPENAI_API_KEY"
+   curl -sS https://api.anthropic.com/v1/models -H "x-api-key: $ANTHROPIC_API_KEY" \
+        -H "anthropic-version: 2023-06-01"
+   ```
+
+   Match exactly, then write the exact ID into the declaration. If the name is
+   a family with several variants, name them and ask — do not pick.
+   `preflight.resolve_model()` does the matching and refuses the ambiguous
+   case; `preflight.curl_for()` prints the command when no key is present.
 2. **Verifier second** (`03-evaluator-verifier.md`): define what "correct"
    means and how failures become structured, actionable feedback. Decide
    explicitly whether it **gates** (refuses the exit) or **advises** (reports
