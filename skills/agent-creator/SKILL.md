@@ -98,6 +98,63 @@ inferred:
 
 Ask them together, once, in one question. Do not interview.
 
+#### Do not put an intent-rewriter in front of this skill
+
+A recurring instinct is to add a preprocessing layer that "improves" the
+user's request before the skill sees it. Resist it, and note *which* request
+we are talking about, because the two cases have opposite answers.
+
+**"Build me an agent that X" needs no expansion.** The routing above extracts
+a handful of bits from it — is the output constrainable, is there a mechanical
+check, does a step read far more than it writes. A one-line request already
+carries those. A rewriter in front can only lose them, and it becomes a second
+place where intent disappears with nothing in the transcript to show it.
+
+**"Build me a small study with a desk" absolutely needs expansion** — how big,
+which wall, what height. But that is the *generated agent's* job, not a layer
+in front of this one. Done there it has somewhere to live: the planning phase
+resolves what it can, asks once about what it cannot, and writes the result
+into the action space where the user can read and edit it. Done in front of
+the skill, the same expansion is an invisible guess that nobody can audit.
+
+The rule: **the skill's input needs no optimising; the built agent's input
+does — and handling it is a feature of that agent, not a stage before this
+one.**
+
+#### Before writing anything, declare what you decided
+
+Show this first, every time. It costs one screen and it is the only point at
+which a misroute is cheap to fix — everything after it is code:
+
+```
+Building: <one line: what this agent does>
+
+  Action space   <what it may produce>            <- because <reason>
+  Verifier       gating | advisory | human        <- because <reason>
+  Delegation     <yes, to what | no>              <- because <reason>
+  Sandbox        <boundary>                       <- always
+  Budget         <axes and caps>                  <- always
+  Persistence    staging -> promote, traces       <- always
+  Not yet        <what you are deliberately skipping and why>
+
+Say if any of that is wrong. Otherwise I'll start.
+```
+
+Three reasons this earns its screen, and none of them is politeness:
+
+- **A wrong decision surfaces on the first screen rather than after two hours
+  of code.** The action space and the verifier tier are the two choices that
+  cannot be repaired later without rewriting everything downstream.
+- **Every line carries its reason**, so someone who has never heard of these
+  references can still tell you that physics is not actually decisive in their
+  domain, or that there is no human in the loop.
+- **It is testable.** Same request twice should produce the same declaration.
+  Routing that cannot be checked is routing you are trusting on faith.
+
+What this is *not*: a request for permission to continue, and not an
+interview. State the decisions, ask the one combined question from above if
+you still need it, and then build. A reader who says nothing has agreed.
+
 #### Then build in this order
 
 The order is a dependency chain, not a checklist: the action space determines
