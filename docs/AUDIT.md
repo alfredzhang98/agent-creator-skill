@@ -114,6 +114,30 @@ Recorded because a review is evidence, not authority:
 - `tools/verify_citations.py` gained content anchors, so a citation whose
   target was refactored away reports `DRIFTED` instead of passing.
 
+## Follow-up: the unauditable half
+
+A reviewer's sharpest structural criticism was that ~85% of the citation
+surface pointed at Articraft, a tree absent from the repository — "the
+document reads as authoritative while being unauditable." That is now
+addressed: `verify_citations.py` covers both sources, and the anchor count
+went from 364 to **946**.
+
+Worth recording what the check found. Thirty-seven citations initially came
+back broken, and **none of them was a wrong claim**. All three causes were
+defects in the checker itself:
+
+* it resolved bare filenames into `.venv`, so `base.py` matched 23 files and
+  therefore matched none;
+* when a public façade and its private implementation shared a basename it
+  preferred the façade, while line-numbered citations point at the
+  implementation;
+* its citation regex required a leading letter, silently truncating
+  `_shared.py` to a filename that does not exist.
+
+A verification tool that reports false positives trains you to ignore it,
+which is the same failure as a test suite that cannot fail. Both were found
+in the same week.
+
 ## What this does not fix
 
 The agentkit still has never run against a live model. Every claim here is

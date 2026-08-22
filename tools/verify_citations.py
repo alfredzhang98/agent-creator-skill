@@ -35,15 +35,34 @@ import sys
 from dataclasses import dataclass, field
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_SOURCE = os.path.join(
-    ROOT, "saved", "claude-code-v-2.1.88", "package", "src-extracted", "src"
-)
-DEFAULT_EXTRA_ROOTS = [os.path.join(ROOT, "saved", "claude-code-v-2.1.88", "package")]
+#: Never resolve a citation into vendored code or build output.
+_SKIP_DIRS = {".git", "__pycache__", ".venv", "venv", "node_modules",
+              "site-packages", ".mypy_cache", ".pytest_cache", "build", "dist"}
+#: Each distilled agent is one source, with its own version label. Citations
+#: are resolved against whichever source contains the path, so a reference can
+#: cite both agents on the same page — which the comparative sections do.
+SOURCES = {
+    "claude-code-2.1.88": [
+        os.path.join(ROOT, "saved", "claude-code-v-2.1.88", "package", "src-extracted", "src"),
+        os.path.join(ROOT, "saved", "claude-code-v-2.1.88", "package"),
+    ],
+    # Only the first-party trees. Without this, a bare `base.py` matches 23
+    # files (most of them vendored dependencies) and resolves to nothing.
+    "articraft": [
+        os.path.join(os.path.dirname(ROOT), "articraft", d)
+        for d in ("", "agent", "sdk", "storage", "cli")
+    ],
+}
+DEFAULT_SOURCE = SOURCES["claude-code-2.1.88"][0]
+DEFAULT_EXTRA_ROOTS = SOURCES["claude-code-2.1.88"][1:]
 DEFAULT_VERSION = "claude-code-2.1.88"
 LOCKFILE = os.path.join(ROOT, "tools", "citations.lock.json")
 DOCS_GLOB_ROOT = os.path.join(ROOT, "skills")
 
-CITATION = re.compile(r"`?([A-Za-z][\w./-]*\.(?:tsx?|d\.ts)):(\d+)(?:-(\d+))?")
+#: A leading underscore is legal and common (`_shared.py`, `_profiles.py`).
+#: Requiring a letter first silently truncated those to a name that does not
+#: exist, and reported nine correct citations as broken.
+CITATION = re.compile(r"`?([A-Za-z_][\w./-]*\.(?:tsx?|d\.ts|py)):(\d+)(?:-(\d+))?")
 #: Anchors ignore whitespace and comment-only churn so a reformat is not a
 #: false alarm; anything that changes actual code text is.
 _WS = re.compile(r"\s+")
@@ -101,6 +120,64 @@ def find_citations(docs_root: str) -> list[Citation]:
     return out
 
 
+_INDEX: dict[str, dict[str, list[str]]] = {}
+
+
+def _index_for(version: str, roots: list[str]) -> dict[str, list[str]]:
+    """basename -> paths, built once per source. Walking the tree per citation
+    turned a two-second check into a two-minute one."""
+    if version in _INDEX:
+        return _INDEX[version]
+    idx: dict[str, list[str]] = {}
+    for root in roots:
+        if not os.path.isdir(root):
+            continue
+        for dirpath, dirs, files in os.walk(root):
+            dirs[:] = [d for d in dirs if d not in _SKIP_DIRS]
+            for name in files:
+                idx.setdefault(name, []).append(os.path.join(dirpath, name))
+    _INDEX[version] = idx
+    return idx
+
+
+def _line_count(path: str) -> int:
+    try:
+        with open(path, errors="replace") as fh:
+            return sum(1 for _ in fh)
+    except OSError:
+        return 0
+
+
+def resolve_any(path: str, need_line: int = 0) -> tuple[str, str] | None:
+    """Find the citation in ANY configured source. Returns (file, version).
+
+    *need_line* disambiguates: a public façade and its private implementation
+    share a basename, and a line-numbered citation points at whichever one is
+    long enough to contain it. Preferring the façade on name alone reported
+    two dozen correct citations as broken.
+    """
+    for version, roots in SOURCES.items():
+        for root in roots:
+            candidate = os.path.join(root, path)
+            if os.path.isfile(candidate):
+                return candidate, version
+        hits = [h for h in _index_for(version, roots).get(os.path.basename(path), [])
+                if h.endswith(path)]
+        hits = list(dict.fromkeys(hits))
+        if len(hits) == 1:
+            return hits[0], version
+        if len(hits) > 1:
+            viable = [h for h in hits if _line_count(h) >= need_line] if need_line else hits
+            if len(viable) == 1:
+                return viable[0], version
+            if viable:
+                # Still ambiguous: prefer the implementation, which is where a
+                # line-numbered citation almost always points.
+                core = [h for h in viable if "/_core/" in h]
+                return (core[0] if core else viable[0]), version
+    return None
+
+
 def resolve(path: str, source: str, extra_roots: list[str]) -> str | None:
     for root in [source, *extra_roots]:
         candidate = os.path.join(root, path)
@@ -144,6 +221,8 @@ def run(source: str, extra_roots: list[str], version: str, update: bool) -> int:
     entries: dict[str, dict] = lock.get("citations", {})
     res = Result()
 
+    have_source = have_source or any(
+        os.path.isdir(r) for roots in SOURCES.values() for r in roots)
     if not have_source and not update:
         # The pinned source is gitignored, so a fresh clone legitimately has
         # nothing to check against. Say so plainly rather than passing.
@@ -154,7 +233,8 @@ def run(source: str, extra_roots: list[str], version: str, update: bool) -> int:
 
     new_entries: dict[str, dict] = {}
     for c in citations:
-        resolved = resolve(c.path, source, extra_roots) if have_source else None
+        found = resolve_any(c.path, c.end)
+        resolved, cite_version = (found if found else (None, version))
         if resolved is None:
             res.broken.append((c.key, f"unresolved path (cited in {c.doc})"))
             continue
@@ -164,7 +244,7 @@ def run(source: str, extra_roots: list[str], version: str, update: bool) -> int:
             continue
         fingerprint, excerpt = got
         new_entries[c.key] = {
-            "doc": c.doc, "version": version,
+            "doc": c.doc, "version": cite_version,
             "fingerprint": fingerprint, "excerpt": excerpt,
         }
         if update:

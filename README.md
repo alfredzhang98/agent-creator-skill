@@ -200,8 +200,8 @@ good defaults, not laws.
 
 ## Provenance, and how far it is checked
 
-All 364 `file:line` citations point at a pinned source tree
-(`claude-code-2.1.88`).
+All 946 `file:line` citations point at pinned source trees — Claude Code
+2.1.88 and Articraft.
 [`tools/verify_citations.py`](tools/verify_citations.py) checks them and records
 a **content anchor** — a fingerprint of the lines actually cited — in
 `tools/citations.lock.json`:
@@ -211,6 +211,11 @@ python3 tools/verify_citations.py            # check against the lockfile
 python3 tools/verify_citations.py --update   # re-anchor after editing docs
 python3 tools/verify_citations.py --source <newer-tree> --version 2.2.0
 ```
+
+Both distilled agents are covered. That matters because an earlier version of
+this library cited Articraft ~500 times against a tree no reader had, which a
+review correctly called unauditable — the claims were right, but nobody could
+tell.
 
 The anchors are the point. A checker that only confirms "this file has enough
 lines" passes happily on a citation whose target has been refactored away; this
