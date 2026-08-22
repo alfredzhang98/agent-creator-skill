@@ -194,6 +194,22 @@ def queries_for(capability: str, *, extra: Sequence[str] = ()) -> list[str]:
     return out[:MAX_QUERIES]
 
 
+def search_url(query: str) -> str:
+    """The exact URL to GET for one query.
+
+    Exists so an agent holding nothing but a fetch tool can still run step
+    zero. Building the URL is pure; performing the GET is not, and does not
+    belong in this package.
+    """
+    from urllib.parse import quote
+    return f"{REGISTRY_SEARCH_URL}?q={quote(query)}"
+
+
+def search_urls(capability: str, *, extra: Sequence[str] = ()) -> list[str]:
+    """Every URL to fetch for one declared capability, best query first."""
+    return [search_url(q) for q in queries_for(capability, extra=extra)]
+
+
 # ---------------------------------------------------------------------------
 # 2. Registry rows (untrusted input)
 # ---------------------------------------------------------------------------
@@ -337,6 +353,37 @@ def assess(candidate: Candidate, policy: AcquisitionPolicy | None = None) -> Pro
         f"{candidate.owner} is not a known publisher — read it before enabling"
     )
     return Provenance(REVIEW, tuple(reasons))
+
+
+def merge(results: Iterable[Sequence[Candidate]],
+          policy: AcquisitionPolicy | None = None) -> list[Candidate]:
+    """Fold several queries' results into one ranked list.
+
+    Step zero fires one query per phrasing, so the real input is N result
+    lists, not one — and folding them is where the useful signal appears.
+    A skill that surfaces near the top of *several different* phrasings is
+    more likely to be the answer than one that wins a single query, because
+    the queries disagree about wording and agree about it anyway. So the sort
+    is (provenance, -distinct queries hit, best position), and a candidate's
+    position is the best it achieved anywhere.
+
+    Without this, callers hand-roll a dict and lose the agreement signal —
+    which is exactly what the first draft of this module's own smoke test did.
+    """
+    policy = policy or AcquisitionPolicy()
+    order = {OK: 0, REVIEW: 1}
+    best: dict[str, tuple[int, int, Candidate]] = {}   # id -> (hits, pos, cand)
+    for group in results:
+        for position, c in enumerate(group):
+            if assess(c, policy).blocked:
+                continue
+            hits, pos, _ = best.get(c.id, (0, position, c))
+            best[c.id] = (hits + 1, min(pos, position), c)
+    ordered = sorted(
+        best.values(),
+        key=lambda t: (order[assess(t[2], policy).verdict], -t[0], t[1], t[2].id),
+    )
+    return [t[2] for t in ordered]
 
 
 def rank(candidates: Iterable[Candidate],

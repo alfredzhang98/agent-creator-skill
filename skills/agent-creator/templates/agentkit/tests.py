@@ -1166,6 +1166,58 @@ def t_audit_reads_the_prose_not_only_the_scripts():
 
 
 @case
+def t_the_documented_pattern_actually_runs():
+    """Reference 16's reusable pattern raised AttributeError as written.
+
+    `rank(index.search(q) for q in queries)` passes a generator of *lists*, so
+    the first thing rank touches is `list.owner`. Nobody noticed because the
+    example lived in prose. Same defect class as the review's headline finding:
+    the check stopped before the thing it was checking.
+
+    This case executes the documented shape, so the doc cannot rot silently.
+    """
+    payload = {"skills": [
+        {"id": "nvidia/skills/omniverse-realtime-viewer",
+         "skillId": "omniverse-realtime-viewer", "source": "nvidia/skills",
+         "installs": 1968},
+        {"id": "o/r/other", "skillId": "other", "source": "o/r", "installs": 4000},
+    ]}
+    urls = SA.search_urls("an explorable 3D space rendered with NVIDIA")
+    check("a fetch-only agent gets real URLs", all(u.startswith(SA.REGISTRY_SEARCH_URL)
+          for u in urls) and len(urls) > 1, str(urls[:2]))
+    check("query strings are encoded", "%20" in "".join(urls) or "+" in "".join(urls))
+
+    groups = [SA.rank(SA.parse_search_response(payload)) for _ in urls]
+    candidates = SA.merge(groups)
+    check("the documented pattern returns candidates, not an exception",
+          candidates and isinstance(candidates[0], SA.Candidate))
+    plans = [SA.plan_install(c) for c in candidates[:2]]
+    check("every candidate yields a runnable command",
+          all(p.command.startswith("npx skills add ") for p in plans))
+    check("duplicates across queries collapse to one",
+          len(candidates) == 2, str([c.id for c in candidates]))
+
+
+@case
+def t_merge_rewards_agreement_across_phrasings():
+    """Folding N queries by hand loses the only cross-query signal there is."""
+    hit = SA.Candidate("nvidia/skills/right", "right", "nvidia/skills", 1968)
+    loud = SA.Candidate("o/r/loud", "loud", "o/r", 40000)
+    quiet = SA.Candidate("o/r/quiet", "quiet", "o/r", 3000)
+    # `loud` wins one query outright; `hit` places second in three of them.
+    groups = [[loud, hit], [hit, quiet], [hit, quiet]]
+    merged = SA.merge(groups)
+    check("the skill three phrasings agreed on comes first",
+          merged[0].skill_id == "right", str([c.skill_id for c in merged]))
+    check("a one-query winner is not dropped, just outranked",
+          "loud" in [c.skill_id for c in merged])
+    check("refused candidates never survive the fold",
+          all(c.skill_id != "junk" for c in
+              SA.merge([[SA.Candidate("o/r/junk", "junk", "o/r", 2)]])))
+    check("an empty fold is empty, not an error", SA.merge([]) == [])
+
+
+@case
 def t_unconfigured_index_hands_back_a_runnable_command():
     """Refusing is not enough — the usual case is a human on another machine."""
     idx = SA.UnconfiguredIndex()

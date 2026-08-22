@@ -1,6 +1,6 @@
 {
   "name": "agent-creator",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Build a complete LLM agent from one sentence, or design and debug any part of one. 16 module references with 946 machine-verified file:line citations from two production codebases (Articraft, Claude Code), plus a working stdlib-only agent core: tool contract, dispatch gauntlet, permission ladder, hooks, provider seam, prompt build matrix, run lifecycle, 12 tools, and skill acquisition from the open registry.",
   "author": {
     "name": "alfredzhang98"

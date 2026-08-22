@@ -81,7 +81,7 @@ agent core, not pseudocode. Stdlib only, no dependencies:
 
 ```bash
 python3 skills/agent-creator/templates/agentkit/selftest.py   # worked example
-python3 skills/agent-creator/templates/agentkit/tests.py      # 205 assertions
+python3 skills/agent-creator/templates/agentkit/tests.py      # 222 assertions
 ```
 
 > **Audited.** An independent multi-agent review ([docs/AUDIT.md](docs/AUDIT.md))

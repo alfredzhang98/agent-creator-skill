@@ -46,7 +46,7 @@ subsystem without the rest of the kit.
 | `agentkit/orchestration.py` | Staged exit codes, staging→promote, fork/rerun, declarative subagents | `09` |
 | `agentkit/tools/` | Read · Write · Edit · Patch · Glob · Grep · TodoWrite · AskUserQuestion · Shell · ToolSearch · Skill · Delegate | `02`, `11`, `13` |
 | `agentkit/selftest.py` | Worked example: builds an agent and drives it | — |
-| `agentkit/tests.py` | 205 regression assertions, named for the defects they keep fixed | — |
+| `agentkit/tests.py` | 222 regression assertions, named for the defects they keep fixed | — |
 
 Not templated (see the reference docs directly): prompts-as-code
 (`06-prompts.md`), state persistence (`08-state-persistence.md`),

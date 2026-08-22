@@ -180,6 +180,19 @@ exit. Built backwards, both get rewritten.
    space would otherwise have to encode. Cheap to ask, and "nothing fit" is a
    perfectly good answer. Search silently; surface what you found in the
    declaration and let the user decide.
+
+   Concretely, so this is not left to improvisation — one GET per phrasing,
+   then fold them together:
+
+   ```
+   GET https://skills.sh/api/search?q=<query>
+       -> {"skills": [{"id", "skillId", "source", "installs"}, ...]}
+   ```
+
+   With a shell instead: `npx skills find <query>`. With neither, say so and
+   emit the commands for the user to run — `skill_acquisition.manual_script()`
+   produces them. Pair a term of art with its domain word (`3d usd`, not
+   `usd`) or you will retrieve its homonyms.
 1. **Action space first** (`10-action-space-sdk.md`): decide what the agent is
    allowed to produce and through which constrained vocabulary. The single
    highest-leverage design decision.

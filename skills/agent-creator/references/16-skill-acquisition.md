@@ -87,6 +87,13 @@ previous". It over-triggers on skills that legitimately *discuss* permissions,
 and that is the correct failure direction for a gate a human reads. A skill
 that ships no code at all can still be the dangerous one.
 
+**Agreement across phrasings beats any single query.** Step zero fires one
+query per phrasing, so the input is N result lists. `merge()` sorts by
+(provenance, how many distinct queries surfaced it, best position it reached).
+Queries disagree about wording; when they agree about a skill anyway, that is
+the strongest relevance signal available from an index that ships no
+descriptions.
+
 **Search and install belong to the host.** Searching needs the network;
 installing needs a subprocess. No module in this package spawns a process, so
 `SkillIndex` is a `Protocol` and `UnconfiguredIndex` is the default — the same
@@ -115,24 +122,26 @@ normal case, not the degraded one.
 
 ```python
 from skill_acquisition import (
-    AcquisitionPolicy, Acquisition, UnconfiguredIndex, audit_skill,
-    manual_script, pin, plan_install, queries_for, rank,
+    AcquisitionPolicy, Acquisition, audit_skill, manual_script, merge,
+    parse_search_response, pin, plan_install, rank, search_urls,
 )
 
 policy = AcquisitionPolicy(scope="project")
 
-# 1. Capability -> queries. Terms of art, paired.
-queries = queries_for("an explorable 3D space rendered with NVIDIA")
-#   ['explorable 3d', 'explorable', '3d', '3d usd', ..., 'nvidia omniverse']
+# 1+2. Capability -> queries -> URLs. Terms of art, paired. Pure: the GET is
+# yours to make, with a fetch tool, curl, or a wired SkillIndex.
+groups = []
+for url in search_urls("an explorable 3D space rendered with NVIDIA"):
+    groups.append(rank(parse_search_response(get_json(url))))
 
-# 2. Host searches; rows are untrusted input.
-candidates = rank(index.search(q) for q in queries)   # refused rows dropped
+# 3. Fold the queries together. Agreement across phrasings is the signal.
+candidates = merge(groups)
 
-# 3. Plan, do not run.
+# 4. Plan, do not run.
 plans = [plan_install(c, policy) for c in candidates[:3]]
 print(manual_script(plans))        # works with no backend wired in at all
 
-# 4. After the host installs: audit before enabling.
+# 5. After the host installs: audit before enabling.
 acq = Acquisition(candidates[0], plan=plans[0])
 acq.audit  = audit_skill(plans[0].target_dir)
 acq.pinned = pin(plans[0].target_dir)
