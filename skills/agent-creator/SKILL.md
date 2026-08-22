@@ -1,9 +1,9 @@
 ---
 name: agent-creator
 description: >-
-  Build a complete agent from one sentence, or design, review and debug any
-  single part of one — loop, tools, verifier, prompts, memory, planning,
-  permissions, sandboxing, cost, orchestration. Distilled from two production
+  Build a complete agent from one sentence, or debug any single part of one —
+  loop, tools, verifier, prompts, memory, planning, permissions, sandboxing,
+  cost, orchestration. Finds and installs skills it needs. From two production
   codebases.
 ---
 
@@ -44,7 +44,7 @@ input/task → LLM (brain) → decide: answer? tool? plan?
 | Executor | Run each step, dispatch tools | `01-agent-loop.md` |
 | State / Context | Where the task is, what tools returned | `08-state-persistence.md` |
 | Memory | Cross-task knowledge, retrieval | `14-memory.md`, `08-state-persistence.md` |
-| Skills | Reusable specialised abilities, disclosed progressively | `11-skills-progressive-disclosure.md`, `10-action-space-sdk.md` |
+| Skills | Reusable specialised abilities, disclosed progressively — **acquired from the ecosystem before they are written** | `11-skills-progressive-disclosure.md`, `16-skill-acquisition.md`, `10-action-space-sdk.md` |
 | Extension points | Third-party code in your lifecycle | `12-hooks-and-extension.md` |
 | Evaluator / Verifier | Is the result correct? Is the task done? | `03-evaluator-verifier.md` (gating **and** advisory tiers) |
 | Guardrails | Permissions, safety, limits | `13-permission-and-consent.md`, `04-sandboxed-execution.md`, `07-cost-guardrails.md` |
@@ -64,6 +64,7 @@ ask only about the things that are genuinely the user's call.
 
 | Question | How to answer it | Reference |
 |---|---|---|
+| **Has someone already built this?** | Ask *first*, before designing a tool surface. Search the skills registry for each capability the request implies. A 3D agent should not re-derive USD conventions that `nvidia/skills` publishes. Searching is free and automatic; **installing is not** — it goes in the declaration for the user to approve, because a skill's prose becomes your agent's instructions. "Nothing fit, building it" is a real answer and belongs in the declaration too. | `16` |
 | **What may the agent produce?** | If the output has a format you can constrain — a script, a config, a scene, a query — design a small declarative vocabulary for it and forbid the raw format. If the agent must act on an open world (arbitrary files, arbitrary commands), keep the tool surface narrow instead and pay for it with permissions. | `10` |
 | **What decides "done"?** | Is there a mechanical check? **Decisive** (compiler, simulator, schema validator, test suite that fully covers the goal) → *gating*: the run cannot end until it passes. **Partial** (linter, type checker, some tests) → *advisory*: report attribution-scoped, report-once, never block. **None** → the human decides, so invest in making the question cheap. Never zero authorities. | `03`, `13` |
 | **Does it delegate?** | If a step reads far more than it writes, spawn a subagent for it. Allowlists replace, never extend. | `09` |
@@ -132,6 +133,7 @@ Building: <one line: what this agent does>
   Action space   <what it may produce>            <- because <reason>
   Verifier       gating | advisory | human        <- because <reason>
   Delegation     <yes, to what | no>              <- because <reason>
+  Skills         <found, with installs+source | none fit, building it>
   Sandbox        <boundary>                       <- always
   Budget         <axes and caps>                  <- always
   Persistence    staging -> promote, traces       <- always
@@ -139,6 +141,12 @@ Building: <one line: what this agent does>
 
 Say if any of that is wrong. Otherwise I'll start.
 ```
+
+If the Skills line found anything, list it plainly — name, publisher, install
+count, and the one-line command — and wait. Acquiring a skill installs
+somebody else's instructions into your agent's context with your agent's
+authority; that is the user's call, in the same class as naming an external
+service. Never `-y`, never `-g`, never silently.
 
 Three reasons this earns its screen, and none of them is politeness:
 
@@ -153,7 +161,11 @@ Three reasons this earns its screen, and none of them is politeness:
 
 What this is *not*: a request for permission to continue, and not an
 interview. State the decisions, ask the one combined question from above if
-you still need it, and then build. A reader who says nothing has agreed.
+you still need it, and then build. A reader who says nothing has agreed —
+with one carve-out: **silence is not consent to install a skill.** Every other
+line describes code you are about to write and can rewrite. That line
+describes somebody else's instructions entering your agent's context, and it
+needs an actual yes.
 
 #### Then build in this order
 
@@ -161,6 +173,13 @@ The order is a dependency chain, not a checklist: the action space determines
 whether a verifier is possible, and the verifier determines how the loop can
 exit. Built backwards, both get rewritten.
 
+0. **Search before you design** (`16-skill-acquisition.md`): for each
+   capability the request implies, ask whether the ecosystem already publishes
+   it. This is step zero because the answer changes the size of every step
+   below — an acquired skill can supply the domain conventions your action
+   space would otherwise have to encode. Cheap to ask, and "nothing fit" is a
+   perfectly good answer. Search silently; surface what you found in the
+   declaration and let the user decide.
 1. **Action space first** (`10-action-space-sdk.md`): decide what the agent is
    allowed to produce and through which constrained vocabulary. The single
    highest-leverage design decision.

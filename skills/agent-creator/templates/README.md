@@ -32,8 +32,9 @@ subsystem without the rest of the kit.
 | `agentkit/registry.py` | Pool assembly, deny-filter-before-assembly, cache-stable ordering, deferred schemas + search query language | `02`, `11` |
 | `agentkit/pipeline.py` | The seven-stage gauntlet between a `tool_use` block and the world; opt-in parallelism; never raises | `02`, `13` |
 | `agentkit/permissions.py` | The consent ladder (1a→3), scoped rules, bypass-immune classes, unknown-means-ask | `13` |
-| `agentkit/hooks.py` | 17-event lifecycle, exit-code + JSON protocol, strictness-ordered aggregation, refusing default executor | `12` |
+| `agentkit/hooks.py` | 27-event lifecycle, exit-code + JSON protocol, strictness-ordered aggregation, refusing default executor | `12` |
 | `agentkit/result_store.py` | Overflow-to-disk with bounded previews; per-result and per-message budgets | `02`, `08` |
+| `agentkit/skill_acquisition.py` | Buy before you build: registry queries, two-gate trust (author, then prose), plans instead of subprocesses, content pins | `16` |
 | `agentkit/skills_loader.py` | Progressive disclosure: frontmatter, realpath dedup, conditional activation, budgeted index | `11` |
 | `agentkit/loop.py` | Turn loop as a typed state machine: closed `Stop`/`Continue` sets, recovery ladders, in-loop budgets | `01` |
 | `agentkit/verifier.py` | Advisory verification: attribution-scoped baseline diff, report-once | `03` |
@@ -45,7 +46,7 @@ subsystem without the rest of the kit.
 | `agentkit/orchestration.py` | Staged exit codes, staging→promote, fork/rerun, declarative subagents | `09` |
 | `agentkit/tools/` | Read · Write · Edit · Patch · Glob · Grep · TodoWrite · AskUserQuestion · Shell · ToolSearch · Skill · Delegate | `02`, `11`, `13` |
 | `agentkit/selftest.py` | Worked example: builds an agent and drives it | — |
-| `agentkit/tests.py` | 174 regression assertions, named for the defects they keep fixed | — |
+| `agentkit/tests.py` | 205 regression assertions, named for the defects they keep fixed | — |
 
 Not templated (see the reference docs directly): prompts-as-code
 (`06-prompts.md`), state persistence (`08-state-persistence.md`),

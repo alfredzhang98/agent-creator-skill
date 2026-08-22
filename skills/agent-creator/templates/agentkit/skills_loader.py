@@ -61,7 +61,8 @@ _FM = re.compile(r"\A---\s*\n(.*?)\n---\s*\n?(.*)\Z", re.S)
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
-    """Minimal YAML-ish frontmatter: ``key: value`` and ``key: [a, b]``.
+    """Minimal YAML-ish frontmatter: ``key: value``, ``key: [a, b]``, block
+    lists, and block scalars.
 
     Deliberately total — a malformed line is skipped rather than dropping the
     whole skill. A skill that half-parses is still discoverable; a skill that
@@ -71,17 +72,46 @@ def parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
     if not m:
         return {}, text
     data: dict[str, Any] = {}
-    for line in m.group(1).splitlines():
+    lines = m.group(1).splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        i += 1
         if not line.strip() or line.lstrip().startswith("#") or ":" not in line:
             continue
         key, _, raw = line.partition(":")
-        val: Any = raw.strip().strip("'\"")
+        key = key.strip()
+        val: Any = raw.strip()
+
+        # Block scalars. `description: >-` is the idiomatic way to write the
+        # one field that decides whether a skill is ever activated, so a parser
+        # that reads it as the literal string ">-" makes the skill invisible
+        # while looking like it worked. This one could not read its own
+        # SKILL.md.
+        if val and val[0] in "|>" and set(val[1:]) <= set("+-0123456789"):
+            folded, chomp = val[0] == ">", ("-" if "-" in val else
+                                            "+" if "+" in val else "")
+            indent = len(line) - len(line.lstrip())
+            body: list[str] = []
+            while i < len(lines):
+                nxt = lines[i]
+                if nxt.strip() and (len(nxt) - len(nxt.lstrip())) <= indent:
+                    break
+                body.append(nxt.strip() if folded else nxt[indent + 2:]
+                            if len(nxt) > indent + 2 else "")
+                i += 1
+            while body and not body[-1].strip():
+                body.pop()
+            joined = " ".join(w for w in body if w) if folded else "\n".join(body)
+            data[key] = joined + ("\n" if chomp == "+" and body else "")
+            continue
+
+        val = val.strip("'\"")
         if val.startswith("[") and val.endswith("]"):
             val = [v.strip().strip("'\"") for v in val[1:-1].split(",") if v.strip()]
         elif val.lower() in ("true", "false"):
             val = val.lower() == "true"
-        data[key.strip()] = val
-        last_key = key.strip()
+        data[key] = val
     # Block-style lists (`key:` followed by `  - item` lines) are the more
     # idiomatic YAML form. Skipping them silently turned a CONDITIONAL skill
     # into an unconditional one — exactly the failure the feature prevents.

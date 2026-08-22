@@ -3,7 +3,7 @@
 # agent-creator-skill
 
 **Turn production agent architecture into a reusable skill.**
-15 module references with machine-verified provenance, plus a working
+16 module references with machine-verified provenance, plus a working
 stdlib-only agent core you can lift.
 
 [![skills.sh](https://skills.sh/b/alfredzhang98/agent-creator-skill)](https://skills.sh/alfredzhang98/agent-creator-skill)
@@ -33,7 +33,7 @@ verifiable sources, and a reference implementation that runs.
 
 ## What you get
 
-Ask for an agent and you get all fifteen of these designed together, not a
+Ask for an agent and you get all sixteen of these designed together, not a
 loop with tools bolted on:
 
 | # | Capability | What it actually does |
@@ -49,10 +49,11 @@ loop with tools bolted on:
 | 09 | **Orchestration** | Declarative subagents with per-class capability restriction, worktree isolation, and allowlists that *replace* rather than extend so parent approvals cannot leak into a child. |
 | 10 | **Action space** | The root decision: constrain what the model may produce, because everything downstream — validation, error messages, mechanical QC — is only possible if you did. |
 | 11 | **Progressive disclosure** | Skills and tool schemas that cost one line each until invoked. Index → body → directory. Plus the rule that pays for itself: nothing volatile in a cached prefix. |
-| 12 | **Hooks** | 17 lifecycle events, an exit-code *and* JSON reply protocol, most-restrictive-wins aggregation, and an unconditional trust gate. Other people extend your agent without forking it. |
+| 12 | **Hooks** | 27 lifecycle events, an exit-code *and* JSON reply protocol, most-restrictive-wins aggregation, and an unconditional trust gate. Other people extend your agent without forking it. |
 | 13 | **Permissions** | A numbered consent ladder where some decisions are immune to "skip all prompts", and unknown always means ask. This is what says "no" when no compiler can. |
 | 14 | **Memory** | Cross-session memory defined by non-derivability, recalled through a cheap-model pass over a manifest, with staleness carried alongside the content. |
 | 15 | **Planning** | Plan mode as an enforced read-only *permission mode*, a plan written to disk before approval, and progress tracked with exactly one task in flight. |
+| 16 | **Skill acquisition** | Search the open registry before writing a tool. Two independent gates — who published it, then what its prose tells your model to do — because a library you call and a skill calls you. Plans commands instead of running them, and pins content the ecosystem cannot version. |
 
 ### How they fit together
 
@@ -80,7 +81,7 @@ agent core, not pseudocode. Stdlib only, no dependencies:
 
 ```bash
 python3 skills/agent-creator/templates/agentkit/selftest.py   # worked example
-python3 skills/agent-creator/templates/agentkit/tests.py      # 174 assertions
+python3 skills/agent-creator/templates/agentkit/tests.py      # 205 assertions
 ```
 
 > **Audited.** An independent multi-agent review ([docs/AUDIT.md](docs/AUDIT.md))
@@ -97,9 +98,10 @@ python3 skills/agent-creator/templates/agentkit/tests.py      # 174 assertions
 |---|---|
 | `contract.py` · `registry.py` · `pipeline.py` | Tool contract with fail-closed defaults, cache-stable pool assembly, the seven-stage gauntlet |
 | `provider.py` · `prompts.py` · `orchestration.py` | Backend seam and compaction policy; prompt build matrix and cache boundary; run lifecycle, staged exits and declarative subagents |
-| `permissions.py` · `hooks.py` | Consent ladder with bypass-immune classes; 17-event hook protocol |
+| `permissions.py` · `hooks.py` | Consent ladder with bypass-immune classes; 27-event hook protocol |
 | `loop.py` · `verifier.py` · `state.py` | Typed-transition loop, attribution-scoped verifier, transcript + staging + resume repair |
 | `memory.py` · `planner.py` · `skills_loader.py` · `result_store.py` | Recall ladder, plan-mode phase machine, progressive disclosure, overflow-to-disk |
+| `skill_acquisition.py` | Registry queries that reach terms of art, two-gate trust, install plans instead of subprocesses, content pins |
 | `tools/` | Read · Write · Edit · Patch · Glob · Grep · TodoWrite · AskUserQuestion · Shell · ToolSearch · Skill · Delegate |
 
 Read [`selftest.py:build_agent`](skills/agent-creator/templates/agentkit/selftest.py)
