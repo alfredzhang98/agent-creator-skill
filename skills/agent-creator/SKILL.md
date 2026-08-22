@@ -1,13 +1,9 @@
 ---
 name: agent-creator
 description: >-
-  Design knowledge for building production LLM agents, distilled from real
-  agent codebases (currently: Articraft, an agentic 3D-asset generator). Use
-  when designing or implementing any part of an agent — the turn loop, tool
-  layer, verifier/evaluator, multi-provider abstraction, system prompts, cost
-  guardrails, state/trace persistence, sandboxed execution, or orchestration.
-  Also use when reviewing an agent architecture or debugging agent failure
-  modes (reward hacking, silent loops, runaway spend, context blowup).
+  Design, build, or review any part of an LLM agent — loop, tools, verifier,
+  prompts, memory, planning, permissions, sandboxing, cost, orchestration —
+  or debug agent failure modes. Distilled from two production codebases.
 ---
 
 # Agent Creator
@@ -43,13 +39,14 @@ input/task → LLM (brain) → decide: answer? tool? plan?
 | LLM / Policy | The brain: reasoning + decisions | `05-providers.md` |
 | System Prompt | Identity, goals, rules, behavior | `06-prompts.md` |
 | Tools | Search, code, files, compile, domain actions | `02-tools.md` |
-| Planner | Decompose goals into steps | `01-agent-loop.md`, `09-orchestration.md` |
+| Planner | Decompose goals into steps, get sign-off, track progress | `15-planning.md`, `09-orchestration.md` |
 | Executor | Run each step, dispatch tools | `01-agent-loop.md` |
 | State / Context | Where the task is, what tools returned | `08-state-persistence.md` |
-| Memory | Cross-task knowledge, retrieval | `08-state-persistence.md`, `02-tools.md` (BM25 examples) |
-| Skills | Reusable specialised abilities | `10-action-space-sdk.md` |
-| Evaluator / Verifier | Is the result correct? Is the task done? | `03-evaluator-verifier.md` |
-| Guardrails | Permissions, safety, limits | `04-sandboxed-execution.md`, `07-cost-guardrails.md` |
+| Memory | Cross-task knowledge, retrieval | `14-memory.md`, `08-state-persistence.md` |
+| Skills | Reusable specialised abilities, disclosed progressively | `11-skills-progressive-disclosure.md`, `10-action-space-sdk.md` |
+| Extension points | Third-party code in your lifecycle | `12-hooks-and-extension.md` |
+| Evaluator / Verifier | Is the result correct? Is the task done? | `03-evaluator-verifier.md` (gating **and** advisory tiers) |
+| Guardrails | Permissions, safety, limits | `13-permission-and-consent.md`, `04-sandboxed-execution.md`, `07-cost-guardrails.md` |
 | Cost / Billing | Spend metering, hard budget caps | `07-cost-guardrails.md` |
 
 ## How to use this skill
@@ -62,8 +59,11 @@ Work through the modules in this order — each layer depends on the previous:
    allowed to produce and through which constrained vocabulary. The single
    highest-leverage design decision.
 2. **Verifier second** (`03-evaluator-verifier.md`): define what "correct"
-   means and how failures become structured, actionable feedback. An agent
-   without a verifier is a text generator.
+   means and how failures become structured, actionable feedback. Decide
+   explicitly whether it **gates** (refuses the exit) or **advises** (reports
+   without blocking) — most domains have real checkers but no oracle for
+   "done", and that middle tier has its own rules. An agent with neither is a
+   text generator.
 3. **Tools** (`02-tools.md`): the smallest tool surface that lets the model
    act, with errors returned as data, never raised.
 4. **The loop** (`01-agent-loop.md`): turn lifecycle, the fresh-verify success
@@ -72,13 +72,28 @@ Work through the modules in this order — each layer depends on the previous:
    docs in the first user message (not the system prompt).
 6. **Provider layer** (`05-providers.md`): only if you need >1 LLM backend;
    otherwise keep a thin seam you can widen later.
-7. **Guardrails & cost** (`07-cost-guardrails.md`, `04-sandboxed-execution.md`):
-   hard budget cap, max turns, and an OS-isolated sandbox backend for
-   executing generated code.
+7. **Guardrails & cost** (`13-permission-and-consent.md`,
+   `07-cost-guardrails.md`, `04-sandboxed-execution.md`): the consent ladder if
+   a human is in the loop, a hard budget cap, max turns, and an OS-isolated
+   sandbox backend for executing generated code. Isolation is what buys
+   autonomy — every class of action you can safely sandbox is a class of
+   question you never have to ask.
 8. **Persistence** (`08-state-persistence.md`): staging-then-promote, traces,
    provenance. Do this before you scale up runs — trajectories are the asset.
 9. **Orchestration** (`09-orchestration.md`): CLI/entry points, derived runs
    (fork/edit/rerun), batch execution.
+10. **Progressive disclosure** (`11-skills-progressive-disclosure.md`): only
+    once the capability surface outgrows the context window — skills, deferred
+    tool schemas, and the rule that nothing volatile may live in a cached
+    prefix.
+11. **Extension points** (`12-hooks-and-extension.md`): only once other people
+    need to change your agent's behaviour without forking it.
+12. **Planning** (`15-planning.md`): once tasks are ambiguous enough that
+    building the wrong thing efficiently is a real risk. Planning is a
+    permission mode, not a prompt.
+13. **Memory** (`14-memory.md`): last, and only with a written rule for what
+    belongs. A memory store that saves what `grep` could rediscover is worse
+    than none.
 
 ### Building one component only
 
@@ -89,32 +104,60 @@ provenance) → design-decision table → constants table → a generic
 
 ### Starting from code
 
-`templates/` contains stdlib-only Python skeletons distilled from the case
-studies: `agent_loop.py`, `tools.py`, `verifier.py`, `provider_adapter.py`,
-`cost_meter.py`, `sandbox_backend.py`. They are starting points, not a
-framework — copy, rename, and specialise.
+`templates/agentkit/` is a **working agent core**, not a skeleton: tool
+contract, dispatch gauntlet, permission ladder, hooks, result overflow, skill
+loader, typed-transition loop, and ten working tools (Read, Write, Edit, Glob,
+Grep, TodoWrite, AskUserQuestion, Shell, ToolSearch, Skill). Stdlib only, no
+dependencies. Verify it before trusting it:
+
+```bash
+python3 templates/agentkit/selftest.py     # -> selftest: 10/10 scenarios OK
+```
+
+Read `selftest.py:build_agent` first — it is the shortest honest example of
+wiring the pieces together. Then copy the directory, delete the tools you do
+not need, and add your domain's.
+
+`templates/*.py` (single files) are the older per-pattern skeletons distilled
+from Articraft — the verifier, provider seam, cost meter and sandbox contract.
+Use them when you want one subsystem's shape without the kit.
 
 ## The five load-bearing invariants
 
-If you take nothing else, take these — every one exists because its absence
-is a known production failure mode:
+If you take nothing else, take these. Each is tagged with **why you should
+believe it**, because the strength genuinely differs and a reader deserves to
+calibrate rather than take five equally confident assertions on faith:
 
-1. **Success is verified, never self-reported.** Gate every "I'm done" on a
+- *mechanical* — follows from the API or OS contract, not from observation.
+  Ignoring it produces a specific, reproducible failure.
+- *converged* — both distilled agents arrived at it independently. Strong,
+  but n=2 from one ecosystem; treat as a very good default, not a law.
+- *single-source* — one agent does this and it is well-argued. Worth stealing,
+  worth questioning in your domain.
+
+1. **Success is verified, never self-reported.** *(converged, with a caveat —
+   see the section below.)* Gate every "I'm done" on a
    fresh external check of the *latest* artifact revision (revision counter
    bumped on every mutation, compared against the revision at last successful
    verify). Models confidently declare victory over broken work.
-2. **Tool errors are data, not exceptions.** Every malformed call, validation
+2. **Tool errors are data, not exceptions.** *(mechanical.)* Every malformed call, validation
    failure, or runtime error goes back to the model as a structured tool
    result it can self-correct from. A raised exception aborts the loop and
    leaves a dangling `tool_call_id`.
-3. **One primary issue at a time.** When verification produces N failures,
-   pick exactly one root cause by a priority ladder (runtime error before
-   policy violations before QC heuristics) and lead with it. Models given N
-   co-equal failures patch the easiest, not the causal one.
-4. **Budgets are enforced in the loop, not hoped for.** Hard USD cap checked
+3. **One primary issue at a time.** *(single-source: Articraft.)* When
+   verification produces N failures, pick one root cause by a priority ladder
+   (runtime error before policy violations before QC heuristics) and lead with
+   it, because models given N co-equal failures patch the easiest rather than
+   the causal one. Claude Code does **not** do this — its advisory verifier
+   reports every new finding at once, relying on attribution-scoping to keep
+   the list short (reference 03). Both work; which you need depends on whether
+   your failures are usually one cause with many symptoms (ladder) or many
+   independent problems (report all).
+4. **Budgets are enforced in the loop, not hoped for.** *(mechanical.)* Hard USD cap checked
    both before the LLM call and after usage recording; max-turns counts
    no-action turns too; every terminal path persists the cost ledger.
-5. **Never execute generated code without an isolated sandbox.** Process
+5. **Never execute generated code without an isolated sandbox.** *(mechanical:
+   a security property, not an empirical finding.)* Process
    timeouts and rlimits improve *reliability* but provide no security
    boundary — a child process is killable isolation, not a sandbox. Run
    model-authored code inside an OS-level boundary (container with
@@ -122,15 +165,37 @@ is a known production failure mode:
    supervise it with a parent-enforced wall-clock kill, and return every
    failure in-band as typed data.
 
+### When invariant 1 has no compiler
+
+Invariant 1 assumes a mechanical check exists. For open-ended work — "improve
+this code", "write this document" — it does not, and pretending otherwise
+produces a verifier that measures nothing. The rule generalises to:
+
+> **Exactly one authority must be able to say "no" to a finished attempt.**
+> If the domain admits mechanical verification, that authority is the
+> verifier (`03`). If it does not, it is the human — and the engineering then
+> goes into making the question you ask them cheap, scoped, and rare:
+> per-input permission predicates, structured multiple-choice questions, an
+> approval gate modelled as a state transition, and an OS sandbox whose whole
+> purpose is to *reduce* how often you must ask (`02`, `04`, case study 02).
+
+What is never acceptable is *zero* authorities — the model finishing on its
+own say-so with nothing external able to refuse.
+
 ## Dependencies
 
-None (instruction + template skill; templates are stdlib-only Python).
+None. Templates are stdlib-only Python 3.10+ and run without installation.
+Two capabilities are deliberately left as Protocols with refusing defaults —
+executing generated code (`SandboxBackend`) and executing hooks
+(`HookExecutor`) — because supplying an OS-level boundary is a deployment
+decision this package will not make for you.
 
 ## Case studies
 
 | Agent | Domain | What it contributes |
 |---|---|---|
-| [Articraft](case-studies/articraft.md) | text/image → articulated 3D assets (CadQuery → URDF) | All 10 module references; the compile-feedback verifier pattern; SDK-shaped action space |
+| [Articraft](case-studies/articraft.md) | text/image → articulated 3D assets (CadQuery → URDF) | References 00–10; the compile-feedback verifier pattern; SDK-shaped action space |
+| [Claude Code](case-studies/claude-code.md) | general-purpose coding agent, human in the loop | References 11-13; the typed-transition loop and recovery ladders; the tool-call gauntlet and fail-closed tool contract; the consent ladder; the five-layer context strategy; `templates/agentkit/`; the [tool catalogue](case-studies/claude-code-tool-catalog.md) |
 
 The library is designed to grow: each newly distilled agent adds a case study
 and enriches the references where its design differs. See
