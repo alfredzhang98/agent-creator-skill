@@ -80,7 +80,7 @@ agent core, not pseudocode. Stdlib only, no dependencies:
 
 ```bash
 python3 skills/agent-creator/templates/agentkit/selftest.py   # worked example
-python3 skills/agent-creator/templates/agentkit/tests.py      # 120 assertions
+python3 skills/agent-creator/templates/agentkit/tests.py      # 174 assertions
 ```
 
 > **Audited.** An independent multi-agent review ([docs/AUDIT.md](docs/AUDIT.md))
@@ -96,10 +96,11 @@ python3 skills/agent-creator/templates/agentkit/tests.py      # 120 assertions
 | Module | What it gives you |
 |---|---|
 | `contract.py` · `registry.py` · `pipeline.py` | Tool contract with fail-closed defaults, cache-stable pool assembly, the seven-stage gauntlet |
+| `provider.py` · `prompts.py` · `orchestration.py` | Backend seam and compaction policy; prompt build matrix and cache boundary; run lifecycle, staged exits and declarative subagents |
 | `permissions.py` · `hooks.py` | Consent ladder with bypass-immune classes; 17-event hook protocol |
 | `loop.py` · `verifier.py` · `state.py` | Typed-transition loop, attribution-scoped verifier, transcript + staging + resume repair |
 | `memory.py` · `planner.py` · `skills_loader.py` · `result_store.py` | Recall ladder, plan-mode phase machine, progressive disclosure, overflow-to-disk |
-| `tools/` | Read · Write · Edit · Glob · Grep · TodoWrite · AskUserQuestion · Shell · ToolSearch · Skill |
+| `tools/` | Read · Write · Edit · Patch · Glob · Grep · TodoWrite · AskUserQuestion · Shell · ToolSearch · Skill · Delegate |
 
 Read [`selftest.py:build_agent`](skills/agent-creator/templates/agentkit/selftest.py)
 first — it is the shortest honest example of wiring the pieces together.

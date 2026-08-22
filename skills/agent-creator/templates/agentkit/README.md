@@ -5,7 +5,7 @@ thing is exercised by `selftest.py`:
 
 ```bash
 python3 selftest.py   # worked example: wires an agent and drives it
-python3 tests.py      # regression suite: 120 assertions, all green
+python3 tests.py      # regression suite: 174 assertions, all green
 ```
 
 The two are separate on purpose. `selftest.py` answers *how do I use this*;
@@ -33,11 +33,16 @@ the tools you do not need, add the ones your domain needs, and keep the spine.
 | `state.py` | Session state: append-only transcript, atomic metadata, staging→promote, tolerant readback with orphan repair | `08-state-persistence.md` |
 | `memory.py` | Cross-session memory: non-derivability rule, header manifest, cheap-model recall, staleness, write validation | `14-memory.md` |
 | `planner.py` | Plan mode as a phase machine: enforced read-only, guarded transitions, durable plan file, one-task-in-progress | `15-planning.md` |
+| `provider.py` | The backend seam: retryability that depends on the caller, a usage schema with its inclusivity contract written down, pure compaction decisions | `05-providers.md` |
+| `prompts.py` | Prompt-as-code: a build matrix, memoised sections, a declared cache boundary, and cache-breaking that must be justified at the call site | `06-prompts.md` |
+| `orchestration.py` | Run lifecycle with staged exit codes, staging→promote, fork vs rerun, and declarative subagents whose allowlists replace rather than extend | `09-orchestration.md` |
 | `tools/files.py` | Read / Write / Edit — line-anchored reads, uniqueness-or-error edits, read-before-write, staleness detection | `02` |
 | `tools/search.py` | Glob / Grep — pruned walks, tight result caps, actionable empty results | `02` |
 | `tools/control.py` | TodoWrite / AskUserQuestion — plan externalisation and structured questions | `06`, `09` |
 | `tools/shell.py` | Shell — per-command read-only/destructive classification, rule keys, sandbox-gated execution | `04`, `13` |
 | `tools/meta.py` | ToolSearch / Skill — the two tools that manage the agent's own surface | `11` |
+| `tools/patch.py` | Patch — multi-hunk atomic edits; every hunk must match exactly once, and a failure leaves the file untouched | `02` |
+| `tools/delegate.py` | Delegate — scoped subagents; the parent's approvals cannot leak downward | `09` |
 | `selftest.py` | Worked example — read `build_agent` first, it is the whole integration surface |
 | `tests.py` | Regression suite. One rule: assert the outcome, never the intermediate step |
 

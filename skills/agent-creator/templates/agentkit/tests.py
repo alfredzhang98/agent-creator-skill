@@ -31,6 +31,9 @@ sys.path[:0] = [HERE, os.path.join(HERE, "tools"), os.path.dirname(HERE)]
 
 import cost_meter as CM
 import hooks as H
+import orchestration as O
+import prompts as PR
+import provider as PV
 import loop as L
 import memory as MEM
 import permissions as P
@@ -42,7 +45,9 @@ import state as ST
 import verifier as V
 from contract import DEFAULT_MAX_RESULT_CHARS, Permission, ToolResult, build_tool
 from files import EditTool, ReadTool, WriteTool
+from delegate import make_delegate_tool
 from meta import make_skill_tool, make_tool_search
+from patch import PatchTool, parse_patch
 from sandbox_backend import SandboxPolicy, UnconfiguredSandbox
 from search import GlobTool, GrepTool
 from shell import make_shell_tool
@@ -728,6 +733,266 @@ def shell_is_gated():
           not res.ok and res.code == "sandbox_not_configured")
     check("the escape hatch is absent unless enabled",
           "dangerouslyDisableSandbox" not in t.input_schema["properties"])
+
+
+# ==========================================================================
+# Provider — retryability depends on the caller, usage on the convention
+# ==========================================================================
+
+@case
+def provider_seam():
+    class Http(Exception):
+        def __init__(self, code): self.status_code = code
+
+    check("an overloaded backend is retried for a user-facing turn",
+          PV.should_retry(Http(529), foreground=True))
+    check("but abandoned for a background call, to avoid a self-inflicted herd",
+          not PV.should_retry(Http(529), foreground=False))
+    check("auth failures are never retried", not PV.should_retry(Http(401)))
+    check("unusual 5xx are retried", PV.should_retry(Http(520)))
+    check("a message-only transient is recognised",
+          PV.should_retry(Exception("connection reset")))
+    check("an ordinary bug is not retried", not PV.should_retry(Exception("bad logic")))
+
+    attempts: list[int] = []
+    try:
+        PV.call_with_retry(lambda: (_ for _ in ()).throw(Http(503)),
+                           PV.RetryPolicy(max_attempts=3, base_delay_s=0),
+                           on_retry=lambda a, d, e: attempts.append(a),
+                           sleep=lambda s: None)
+    except Exception:
+        pass
+    check("retries stop at the configured limit", attempts == [1, 2], str(attempts))
+
+    check("key pools merge and de-duplicate",
+          PV.key_pool("A", "B", {"A": "k1", "B": "k1,k2\nk3"}) == ["k1", "k2", "k3"])
+    check("a run picks one key and keeps it",
+          PV.pick_key(["a", "b", "c"], 7) == PV.pick_key(["a", "b", "c"], 7))
+
+    exclusive = PV.normalize_usage(
+        {"input_tokens": 500, "cache_read_input_tokens": 40000, "output_tokens": 100},
+        prompt_is_inclusive=False)
+    check("exclusive usage adds cached tokens back", exclusive["prompt"] == 40500,
+          str(exclusive))
+    inclusive = PV.normalize_usage({"prompt_tokens": 40500, "cached_tokens": 40000},
+                                   prompt_is_inclusive=True)
+    check("inclusive usage is not double-counted", inclusive["prompt"] == 40500)
+
+    high = PV.Pressure(prompt_tokens=95000, max_context_tokens=100000)
+    mid = PV.Pressure(prompt_tokens=72000, max_context_tokens=100000)
+    warm = PV.Pressure(prompt_tokens=72000, max_context_tokens=100000, cached_tokens=50000)
+    check("hard pressure compacts immediately", PV.decide_compaction(high).compact)
+    check("a soft band needs a failure streak",
+          not PV.decide_compaction(mid, failure_streak=2).compact
+          and PV.decide_compaction(mid, failure_streak=4).compact)
+    check("a warm cache buys one more turn before compacting",
+          not PV.decide_compaction(warm, failure_streak=4).compact
+          and PV.decide_compaction(warm, failure_streak=5).compact)
+    check("a recent compaction is respected",
+          not PV.decide_compaction(high, turns_since_last=1).compact)
+    check("an unknown window does not guess",
+          not PV.decide_compaction(PV.Pressure(1000, None)).compact)
+
+
+# ==========================================================================
+# Prompts — cache discipline is the whole point
+# ==========================================================================
+
+@case
+def prompt_assembly():
+    calls = {"n": 0}
+    def counted():
+        calls["n"] += 1
+        return "stable body"
+
+    sections = [PR.section("identity", lambda: "You are an agent."),
+                PR.section("counted", counted),
+                PR.Section(PR.DYNAMIC_BOUNDARY, lambda: None),
+                PR.section("env", lambda: "cwd=/tmp")]
+    cache = PR.SectionCache()
+    first, second = PR.build(sections, cache), PR.build(sections, cache)
+    check("a stable section is computed once", calls["n"] == 1, str(calls["n"]))
+    check("the boundary splits cacheable from volatile",
+          "You are an agent." in first.stable and "cwd=/tmp" in first.volatile)
+    check("the cache key ignores the volatile tail", first.cache_key == second.cache_key)
+
+    vol = [PR.section("identity", lambda: "You are an agent."),
+           PR.volatile("clock", lambda: "now=123", reason="the user asked for a clock")]
+    built = PR.build(vol)
+    check("a volatile section cannot sit above the boundary",
+          "now=123" in built.volatile and "now=123" not in built.stable)
+    try:
+        PR.volatile("x", lambda: "y", reason="   ")
+        check("cache-breaking demands a written reason", False)
+    except ValueError:
+        check("cache-breaking demands a written reason", True)
+    check("cache-breaking sections are auditable",
+          PR.audit(vol) == ["clock: the user asked for a clock"])
+
+    d = tempfile.mkdtemp()
+    sec_dir, out_dir = os.path.join(d, "sections"), os.path.join(d, "gen")
+    os.makedirs(sec_dir)
+    for name, text in [("common.md", "# Common"), ("a.md", "# A"), ("b.md", "# B")]:
+        with open(os.path.join(sec_dir, name), "w") as fh:
+            fh.write(text)
+    variants = [PR.Variant("x", ("common.md", "a.md"), "x.txt"),
+                PR.Variant("y", ("common.md", "b.md"), "y.txt"),
+                PR.Variant("z", ("common.md", "b.md"), "z.txt")]
+    check("first compile writes every artifact",
+          all(PR.write_variant(v, sec_dir, out_dir) for v in variants))
+    check("an unchanged compile writes nothing",
+          not any(PR.write_variant(v, sec_dir, out_dir) for v in variants))
+    check("nothing is stale", PR.stale_variants(variants, sec_dir, out_dir) == [])
+    with open(os.path.join(sec_dir, "common.md"), "w") as fh:
+        fh.write("# Common v2")
+    check("editing a shared section makes every dependent stale",
+          len(PR.stale_variants(variants, sec_dir, out_dir)) == 3)
+    groups = PR.distinct_artifacts(variants, sec_dir)
+    check("byte-identical variants are surfaced",
+          any(set(names) == {"y", "z"} for names in groups.values()), str(groups))
+
+
+# ==========================================================================
+# Orchestration — the exit stage IS the diagnosis
+# ==========================================================================
+
+@case
+def run_lifecycle():
+    root = tempfile.mkdtemp()
+    spec = O.RunSpec(task="build a thing", model="m")
+
+    def execute(artifact=True, boom=False):
+        def _e(s, paths, trace):
+            if boom:
+                raise RuntimeError("model died")
+            if not artifact:
+                return "", {"turns": 3}
+            os.makedirs(paths.staging, exist_ok=True)
+            path = os.path.join(paths.staging, "out.txt")
+            with open(path, "w") as fh:
+                fh.write("artifact")
+            return path, {"turns": 5, "cost_usd": 0.42}
+        return _e
+
+    ok = O.run_once(spec, root, execute=execute(), verify=lambda a: (True, "ok"),
+                    promote_to=lambda rid: os.path.join(root, "lib", rid))
+    check("a verified run is promoted",
+          ok.ok and os.path.exists(os.path.join(ok.artifact_path, "out.txt")))
+    check("stats survive to the outcome", ok.turns == 5 and ok.cost_usd == 0.42)
+
+    check("no artifact is an AGENT failure",
+          O.run_once(spec, root, execute=execute(artifact=False)).exit_code is O.Exit.AGENT)
+    crashed = O.run_once(spec, root, execute=execute(boom=True))
+    check("a crashing agent is caught and named",
+          crashed.exit_code is O.Exit.AGENT and "model died" in crashed.detail)
+
+    failed = O.run_once(spec, root, execute=execute(),
+                        verify=lambda a: (False, "collision at joint 3"))
+    check("failing verification is its own stage", int(failed.exit_code) == 3)
+    check("a failed run keeps its staging directory for inspection",
+          failed.artifact_path and os.path.isdir(failed.artifact_path))
+
+    unwritable = O.run_once(spec, root, execute=execute(), verify=lambda a: (True, "ok"),
+                            promote_to=lambda rid: "/proc/nope/x")
+    check("verified-but-unwritable is distinct from agent failure",
+          int(unwritable.exit_code) == 4)
+    import json as _json
+    with open(os.path.join(root, unwritable.run_id, "metadata.json")) as fh:
+        meta = _json.load(fh)
+    check("every exit path persists metadata",
+          meta["status"] == "failed" and meta["stop_reason"])
+
+    forked = O.fork(spec, "run-1", seed_artifact="/lib/run-1/out.txt")
+    check("a fork records its parent and seed",
+          forked.parent_run_id == "run-1" and forked.seed_artifact)
+    check("a rerun is distinguishable from an edit",
+          O.fork(spec, "run-1").seed_artifact is None)
+
+    outcomes = [O.run_once(spec, root, execute=execute(artifact=(i % 2 == 0)),
+                           verify=lambda a: (True, "ok")) for i in range(4)]
+    counts = O.summarise(outcomes)
+    check("a batch summarises by stage",
+          counts["OK"] == 2 and counts["AGENT"] == 2, str(counts))
+
+
+@case
+def delegation_scoping():
+    definition = O.AgentDefinition("Explore", "read-only search", "prompt",
+                                   tools=("Read", "Grep", "Agent"),
+                                   omit_project_instructions=True)
+    allowed, refused = O.resolve_subagent_tools(definition, ["Read", "Grep", "Write"])
+    check("an allowlist replaces rather than extends", "Write" not in allowed)
+    check("recursion is denied universally, with a reason",
+          "Agent" in refused and "recursion" in refused["Agent"])
+
+    seen: dict = {}
+    def run(d, prompt, tools, options):
+        seen.update(tools=list(tools), options=options)
+        return O.Delegation.completed(d.agent_type, "a1", "found 3 call sites")
+
+    ctx = Ctx(tempfile.mkdtemp())
+    tool_ = make_delegate_tool({"Explore": definition}, run,
+                               parent_pool=lambda: ["Read", "Grep", "Write", "Bash"])
+    res = tool_.call({"agent_type": "Explore", "prompt": "find callers"}, ctx)
+    check("delegation returns the child's report", res.ok and "3 call sites" in res.content)
+    check("the parent's extra tools do not leak down",
+          seen["tools"] == ["Read", "Grep"], str(seen["tools"]))
+    check("context-saving flags reach the child",
+          seen["options"]["omit_project_instructions"])
+    check("an unknown agent type lists what exists",
+          "Explore" in tool_.validate_input({"agent_type": "N", "prompt": "x"}, ctx).message)
+    check("an empty prompt is refused",
+          not tool_.validate_input({"agent_type": "Explore", "prompt": " "}, ctx).ok)
+
+    def boom(d, p, t, o):
+        raise RuntimeError("child died")
+    res = make_delegate_tool({"Explore": definition}, boom).call(
+        {"agent_type": "Explore", "prompt": "x"}, ctx)
+    check("a dead subagent is a tool error, not a parent crash",
+          not res.ok and "child died" in res.error)
+
+
+# ==========================================================================
+# Patch — multi-hunk edits, all or nothing
+# ==========================================================================
+
+@case
+def patch_tool():
+    d = tempfile.mkdtemp()
+    ctx = Ctx(d)
+    path = os.path.join(d, "a.py")
+    with open(path, "w") as fh:
+        fh.write("def f():\n    x = 1\n    return x\n\ndef g():\n    return 2\n")
+    ctx.read_files[path] = os.path.getmtime(path)
+
+    patch = (f"*** Begin Patch\n*** Update File: {path}\n@@\n def f():\n"
+             "-    x = 1\n+    x = 42\n@@\n def g():\n-    return 2\n+    return 3\n"
+             "*** End Patch")
+    res = PatchTool.call({"patch": patch}, ctx)
+    check("two hunks apply in one call", res.ok and res.data["hunks"] == 2, res.error)
+    body = open(path).read()
+    check("both edits reached disk", "x = 42" in body and "return 3" in body)
+
+    with open(path, "w") as fh:
+        fh.write("a\nb\na\nb\n")
+    ctx.read_files[path] = os.path.getmtime(path)
+    ambiguous = f"*** Begin Patch\n*** Update File: {path}\n@@\n a\n-b\n+B\n*** End Patch"
+    res = PatchTool.call({"patch": ambiguous}, ctx)
+    check("an ambiguous hunk is refused with a count",
+          not res.ok and "matches 2 places" in res.error)
+    check("a refused patch leaves the file untouched", open(path).read() == "a\nb\na\nb\n")
+
+    for text, expected in [
+        ("nonsense", "must start with"),
+        (f"*** Begin Patch\n*** Add File: x\n*** End Patch", "not supported"),
+        (f"*** Begin Patch\n*** Update File: {path}\n@@\n+only\n*** End Patch",
+         "no context lines"),
+    ]:
+        v = PatchTool.validate_input({"patch": text}, ctx)
+        check(f"malformed patch explains itself: {expected}",
+              not v.ok and expected in v.message, v.message[:70])
+    check("patching an unread file is refused",
+          not PatchTool.validate_input({"patch": patch}, Ctx(d)).ok)
 
 
 if __name__ == "__main__":
