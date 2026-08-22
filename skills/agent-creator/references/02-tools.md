@@ -1,6 +1,6 @@
 # 02. Tool Design
 
-**Maps to:** Tools · Guardrails · Evaluator/Verifier · State/Context · Cost · **Distilled from:** Articraft `agent/tools/`, `agent/harness.py:812-1030`, `agent/examples.py`
+**Maps to:** Tools · Guardrails · Evaluator/Verifier · State/Context · Cost · **Distilled from:** Articraft `agent/tools/`, `agent/harness.py:812-1030`, `agent/examples.py` · Claude Code 2.1.88 `src/Tool.ts`, `src/tools.ts`, `src/services/tools/toolExecution.ts`, `src/utils/toolResultStorage.ts`
 
 ## Why this module exists
 
@@ -44,6 +44,97 @@ Two tool wrappers share `ApplyPatchInvocation`. The freeform variant declares a 
 
 `find_examples` searches curated markdown docs with YAML frontmatter, indexed per domain pack with `lru_cache(maxsize=8)` (`agent/examples.py:444-454`). Field weighting is implemented by token repetition in the BM25 bag: slug 6x, title 5x, tags 4x, description 3x, code identifiers 2x, prose 1x (`agent/examples.py:39-46`). BM25 over-fetches `k = min(N, max(limit*6, 12))` candidates (`agent/examples.py:706`), then each score gains exact/prefix/phrase field bonuses, `coverage^2 * 3.0`, and structured-match bonuses, with morphological alias hits at 0.3x (`agent/examples.py:466-569`). Gating classifies results into strong vs weak tiers: single-token queries need structured (metadata) signal or high per-field thresholds (`agent/examples.py:587-611`); the weak tier is capped at `min(limit, 2)` and labeled `match_quality='weakly_relevant'`, and the tool description tells the model to treat those as inspiration-only. The harness deduplicates full-document payloads across turns, replacing seen content with a placeholder plus `content_skipped=True` (`agent/harness.py:781-799`).
 
+## Comparative: Claude Code's tool contract
+
+Claude Code (2.1.88, see [case study 02](../case-studies/claude-code.md) and
+the [tool catalogue](../case-studies/claude-code-tool-catalog.md)) implements
+the same invariants against a different premise: an open-world coding agent
+with a human in the loop and no mechanical success gate. Where the two agents
+*agree*, the agreement is strong corroboration; where they differ, the
+difference is traceable to that premise.
+
+**Same invariant, larger error taxonomy.** Every failure is still returned as
+data, never raised — malformed arguments become
+`<tool_use_error>InputValidationError: …</tool_use_error>` with `is_error: true`
+on the tool result (`services/tools/toolExecution.ts:664-679`). The addition
+is that rejection is *staged*, so the model learns which gate stopped it:
+schema parse → tool-specific `validateInput` → internal-field stripping →
+PreToolUse hooks → permission decision → `call()`
+(`services/tools/toolExecution.ts:599-1210`). When a schema failure is caused
+by a *deferred* tool whose schema was never sent, the error is augmented with
+a hint telling the model to load it first (`toolExecution.ts:573-598, 619-630`) — the
+error message names the recovery action, not just the fault.
+
+**One rich contract instead of two phases.** Articraft splits Tool →
+Invocation → ToolResult so validation stays pure and tools stay stateless
+singletons. Claude Code uses a single ~40-member `Tool` object per tool
+(`Tool.ts:362-695`) constructed through `buildTool()` (`Tool.ts:783-792`),
+because each tool must also carry permission logic, six kinds of rendering,
+and observability hooks for an interactive terminal. The lesson is not which
+shape to copy but **where the defaults live**: `buildTool()` fills
+`isConcurrencySafe → false`, `isReadOnly → false`, `isDestructive → false`,
+`toAutoClassifierInput → ''` in exactly one place (`Tool.ts:757-769`), so a
+tool author who forgets a method gets the conservative behaviour and no call
+site ever writes `?.() ?? default`.
+
+**Semantics are functions of the input, not of the tool** (`Tool.ts:402-437`).
+`isReadOnly`, `isConcurrencySafe`, `isDestructive`, `isOpenWorld`, and
+`interruptBehavior` are answered per call: `Bash("ls")` is read-only,
+`Bash("rm -rf")` is not. Articraft's harness decides parallelism from a codec
+flag on the *provider*; Claude Code derives parallelism, permission
+strictness, interrupt handling, and UI collapsing from the tool's own answers
+about this input. That is what lets a third-party plugin tool participate in
+all four mechanisms without the harness knowing its name.
+
+**Path safety: elimination vs permission.** Articraft eliminates
+arbitrary-write risk by never letting the model name a path (bound
+resources). An open-world coding agent cannot take that route — naming paths
+*is* the job — so it pays for the capability with a permission system:
+per-input `checkPermissions`, deny/allow/ask rules with prefix matching, 27
+hook events, and an OS sandbox. Reference 13 quantifies what that costs in
+lines of code, and it is not close. If your domain admits harness-bound
+targets, take them; the open-world alternative is an order of magnitude more
+code and a standing correctness risk, because anything the command parser
+mis-parses is mis-permissioned.
+
+**Never mutate the API-bound input** (`Tool.ts:474-481`,
+`toolExecution.ts:775-793`). Derived and legacy fields are backfilled onto a
+*shallow clone* that hooks, permission checks, and the transcript observe,
+while `call()` receives the model's original values. Two reasons, both worth
+inheriting: the prompt cache keys on the original bytes, and tool results
+that echo the model's own arguments stay byte-stable for transcript and
+fixture hashes.
+
+**Result size is a per-tool declaration, and overflow relocates rather than
+truncates.** Each tool declares `maxResultSizeChars` (`Tool.ts:457-466`),
+clamped by a 50,000-char default and a 200,000-char per-*message* aggregate
+across one turn's parallel results (`constants/toolLimits.ts:13, 49`). Past
+the threshold the result is written to `<session>/tool-results/<id>` and the
+model receives a 2,000-byte preview plus the path
+(`utils/toolResultStorage.ts:109`), so nothing is lost — it becomes readable
+on demand. Articraft's cross-turn retrieval dedupe solves the adjacent
+problem (the same payload twice); this solves the orthogonal one (one payload
+too large). Both are worth having.
+
+**Provider variation moves from the surface to the disclosure.** Articraft
+gives each provider the tool names and shapes its family was RL-trained on.
+Claude Code keeps one surface and varies *which schemas are sent*: 24 of 42
+tool directories declare `shouldDefer: true` (and every MCP tool is deferred
+unconditionally), arriving as bare names recovered on demand through a search
+tool
+(`tools/ToolSearchTool/prompt.ts:62-108`) once deferrable schemas exceed 10%
+of the context window (`utils/toolSearch.ts:45-49`). See
+[reference 11](11-skills-progressive-disclosure.md).
+
+**Assembly order and pool filtering are cache decisions.** Blanket deny rules
+strip tools from the pool *before* the model sees them rather than rejecting
+at call time (`tools.ts:262-269`), and built-ins are sorted as a contiguous
+prefix ahead of sorted MCP tools so a newly connected server cannot interleave
+into the built-ins and invalidate every downstream cache key
+(`tools.ts:345-367`). The general rule: anything volatile must stay out of the
+cached prefix. Reference 06 carries the measured price of ignoring it, and
+reference 11 develops the pattern.
+
 ## Design decisions
 
 | Decision | Rationale | Tradeoff |
@@ -76,6 +167,20 @@ Two tool wrappers share `ApplyPatchInvocation`. The freeform variant declares a 
 | Index caches | `lru_cache(maxsize=8)` per domain corpus (`agent/examples.py:444, 454`) | Build once per process per corpus |
 | Patch constraints | exactly one Update block; Add/Delete/Move rejected; ` `/`+`/`-` line prefixes (`agent/tools/apply_patch.py:178-231`) | Single bound file; ambiguous insertions rejected (`apply_patch.py:252-255`) |
 | Image limits | Gemini < 20MB, others ≤ 50MB; per-provider mime whitelist (`agent/tools/__init__.py:26-64, 208-215`) | Provider inline payload limits, validated before the run starts |
+
+*Claude Code 2.1.88 (open-world coding agent):*
+
+| Constant | Value | Why this number |
+|---|---|---|
+| `maxResultSizeChars` | Read `Infinity` (`tools/FileReadTool/FileReadTool.ts:342`), Grep 20k (`tools/GrepTool/GrepTool.ts:164`), Bash 30k (`tools/BashTool/BashTool.tsx:424`), declared default 100k (`Tool.ts:457-466`) | Only values BELOW the 50k global clamp bind — a declared 100k is the clamp, so 28 of 32 tools' declarations are decorative. The meaningful settings are the tightenings and the `Infinity` opt-out |
+| Global persistence clamp | 50,000 chars (`constants/toolLimits.ts:13`) | System-wide ceiling regardless of what a tool declares |
+| Per-message aggregate cap | 200,000 chars across one turn's tool_results (`constants/toolLimits.ts:49`) | N parallel tools each under their own cap can still bury a turn |
+| Overflow preview | 2,000 bytes + file path, wrapped in `<persisted-output>` (`utils/toolResultStorage.ts:30, 109`) | Enough to decide whether to read the rest; relocation, not truncation |
+| Deferred tools | 24 of 42 tool dirs declare `shouldDefer: true`, plus all MCP tools. Default mode defers them **always**; the 10%-of-context gate is the opt-in `auto` mode (`utils/toolSearch.ts:45-49, 164-172`) | Below that threshold a round-trip costs more than the schemas — which is why the gate exists, not why it is on |
+| Bash timeout | default 120,000 ms, max 600,000 ms (`utils/timeouts.ts:2-3`) | Long enough for builds, short enough that a hang is caught in one turn |
+| Read defaults | 2,000 lines / 25,000 output tokens (`FileReadTool/prompt.ts:10`, `limits.ts:18`) | Self-bounding, which is why it can opt out of persistence |
+| Grep default head limit | 250 matches (`GrepTool.ts:108`) | Search is the classic context-flooder; cap it at the tool |
+| Fail-closed tool defaults | `isConcurrencySafe/isReadOnly/isDestructive → false`, `toAutoClassifierInput → ''` (`Tool.ts:757-769`) | A forgotten method must degrade to the conservative behaviour |
 
 ## Reusable pattern
 
@@ -194,6 +299,11 @@ def tool_msg(call, result):  # every path ends in a well-formed tool message
 - Raw BM25 over a small corpus returns confident-looking noise: the tiered gating, the explicit `weakly_relevant` label echoed in the tool description, and the hard cap of 2 weak results are all load-bearing.
 - Retrieval tools that return full documents blow the context budget on repeat calls — deduplicate by document id across turns in the orchestrator, replacing seen content with a skipped placeholder.
 - Give orchestrator-owned stub tools an `execute()` that returns a loud error ("must be handled by the harness") so miswired interception is visible instead of a silent no-op.
+- Truncating a too-large tool result destroys information the model may need; persist the overflow to disk and hand back a bounded preview plus the path so it can be re-read on demand. Budget per *message* as well as per tool — N parallel calls each under their own cap still bury a turn.
+- Mutating the input the model sent invalidates the prompt cache and desynchronises any tool result that echoes the model's own arguments. Backfill derived fields onto a clone that observers see, and pass the original to `call()`.
+- Answer tool safety questions (`read_only`, `concurrency_safe`, `destructive`) per *input*, not per tool — a shell tool is read-only for `ls` and destructive for `rm`. And put the defaults in one constructor so a forgotten answer fails closed.
+- Filter blanket-denied tools out of the pool before assembling the request instead of rejecting them at call time; a tool the model may never use should not spend tokens announcing itself.
+- Tool ordering is a cache decision: keep stable built-ins as a contiguous sorted prefix ahead of dynamically discovered tools, or one newly connected server re-sorts the list and invalidates every downstream cache key.
 
 ## Checklist
 
@@ -211,3 +321,8 @@ def tool_msg(call, result):  # every path ends in a well-formed tool message
 - [ ] Read tool returns 1-indexed line-anchored output (`L{n}: `) so edits can cite exact lines
 - [ ] Retrieval results tiered, weak tier capped and labeled, tool description explains the label; payloads deduped across turns
 - [ ] `get_description()`-style previews (~50 chars) available before side effects, for logs and traces
+- [ ] Each tool declares its own result-size cap; overflow persists to disk with a preview + path, and a per-message aggregate cap exists
+- [ ] Safety predicates are functions of the input, with fail-closed defaults supplied by one shared constructor
+- [ ] The input handed to `call()` is the model's original; derived fields go on an observer-only clone
+- [ ] Denied/disabled tools are filtered from the pool before the request is built, not rejected at call time
+- [ ] Tool list ordering is stable and cache-aware (built-ins as a sorted contiguous prefix)

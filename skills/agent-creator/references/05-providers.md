@@ -1,6 +1,6 @@
 # 05. Provider Abstraction (Multi-LLM)
 
-**Maps to:** LLM/Policy · Tools · State/Context · Memory · Guardrails · Cost · **Distilled from:** Articraft `agent/providers/` (base, factory, _shared, compaction_policy, openai, openai_codec, anthropic, gemini, gemini_codec, chat_completions, dashscope, deepseek, openrouter, codex_cli), `articraft/values.py`
+**Maps to:** LLM/Policy · Tools · State/Context · Memory · Guardrails · Cost · **Distilled from:** Articraft `agent/providers/` (base, factory, _shared, compaction_policy, openai, openai_codec, anthropic, gemini, gemini_codec, chat_completions, dashscope, deepseek, openrouter, codex_cli), `articraft/values.py` · Claude Code 2.1.88 `src/services/compact/`, `src/services/api/claude.ts`, `src/query.ts`
 
 ## Why this module exists
 
@@ -34,6 +34,72 @@ OpenAI strict mode demands all-required properties and `additionalProperties:fal
 
 ### The keyless outlier: a CLI subprocess as a provider
 `codex_cli.py` shells out to a stateless CLI, re-rendering the entire conversation each call as one tagged prompt (`<system_prompt>`, `<available_tools>`, `<conversation>`), and forces the output shape with a JSON schema written to a temp file — `{content, thought_summary, tool_calls:[{name, arguments}]}` with `additionalProperties:false` and tool `name` constrained to an enum of the real tool names (`agent/providers/codex_cli.py:160-203, 925-975`). The response is strictly validated (exact key set, arguments must decode to a JSON object), usage is scraped from stdio lines, and 4000-char stdio tails go into `extra_content` for diagnostics. This proves the Protocol's worth: even a subprocess with no API fits behind the same five methods.
+
+## Comparative: Claude Code's five-layer context ladder
+
+Articraft compacts on two signals (context pressure, failure plateau). Claude
+Code runs **five** independent mechanisms in a fixed order before every request
+(`query.ts:365-467`), because they trade different things and compose:
+
+| Order | Mechanism | What it drops | Why it goes here |
+|---|---|---|---|
+| 1 | **Per-message result budget** | Oversized tool results → disk, replaced by previews | Runs before microcompact, which keys purely on `tool_use_id` and never inspects content, so the two compose cleanly (`query.ts:369-394`) |
+| 2 | **Snip** | Stale tool-result content, in place | Cheapest; frees tokens the later stages then do not have to summarise (`query.ts:400-410`) |
+| 3 | **Microcompact** | Old results of a fixed set of tools — Read, shell, Grep, Glob, WebSearch, WebFetch, Edit, Write (`services/compact/microCompact.ts:41-50`) | Surgical: only tools whose output is re-derivable |
+| 4 | **Context collapse** | Message ranges → summaries in a side store, projected at read time | Runs before autocompact so that if collapsing gets under the threshold, "we keep granular context instead of a single summary" (`query.ts:428-447`) |
+| 5 | **Autocompact** | Everything → one summary | Last resort; loses structure |
+
+The ordering principle is worth more than the list: **cheapest and most
+reversible first, most destructive last, and each stage is allowed to make the
+next unnecessary.**
+
+**Reactive compaction is a separate axis.** When a request nonetheless comes
+back too long, the error is withheld and a recovery ladder runs (drain
+collapses → reactive compact → surface), each rung once
+(`query.ts:1085-1183`). Media-size rejections join the same ladder but skip the
+collapse rung, because collapse does not strip images (`query.ts:1074-1084`).
+Proactive thresholds and reactive recovery are complementary; a system with
+only one of them either compacts too eagerly or dies on the request that
+crosses the line.
+
+**Thresholds.** Autocompact fires at the effective context window minus a
+13,000-token buffer; manual compaction reserves 3,000; three consecutive
+failures trip a circuit breaker (`services/compact/autoCompact.ts:62-70`).
+`MAX_OUTPUT_TOKENS_FOR_SUMMARY = 20_000` (`autoCompact.ts:30`) is a
+*reservation subtracted from the window*, not a cap on the summary call — the
+primary fork path explicitly refuses to set `maxOutputTokens`, because doing so
+would clamp the thinking budget and break cache-key parity with the main thread
+(`services/compact/compact.ts:1181-1184`); only the streaming fallback applies
+it. After compacting, up to **5 files at 5,000 tokens each** are re-read within
+a shared 50,000-token attachment budget
+(`services/compact/compact.ts:122-124`) — the 50,000 is the pool, not the file
+allowance.
+
+One more thing the constants hide: `WARNING_THRESHOLD_BUFFER_TOKENS` and
+`ERROR_THRESHOLD_BUFFER_TOKENS` are both 20,000 (`autoCompact.ts:63-64`), so
+the two-band warning design is currently one band. If you copy the structure,
+either give the bands different values or admit there is one.
+
+**Cache discipline is a first-class concern of this layer.** The system prompt
+carries an explicit `SYSTEM_PROMPT_DYNAMIC_BOUNDARY` marker separating
+cross-organisation cacheable content from session-specific content
+(`constants/prompts.ts:105-115`), and the tool array is sorted so built-ins form
+a contiguous prefix ahead of externally discovered tools — a flat sort would let
+a newly connected server interleave and invalidate every downstream cache key
+(`tools.ts:354-366`). See reference 06 for the section-level machinery.
+
+**Fallback across models mid-turn.** When the primary model is unavailable the
+loop switches and *restarts the request*, discarding partial assistant messages
+and rebuilding the tool executor (`query.ts:894-950`). A fallback that only
+swaps the model id and replays history fails on the first thinking-enabled
+turn, because thinking signatures are model-bound — "replaying a
+protected-thinking block … to an unprotected fallback 400s"
+(`query.ts:924-926`).
+
+Note what the source does *not* do: the signature strip that fixes this is
+gated on an internal-user flag (`query.ts:927`), so external builds hit the
+failure the comment describes. Copy the reasoning, not the gate — this is a
+place where the distilled source has a known gap rather than a solution.
 
 ## Design decisions
 

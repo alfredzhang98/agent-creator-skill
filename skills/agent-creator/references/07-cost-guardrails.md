@@ -1,6 +1,6 @@
 # 07. Cost Metering & Guardrails
 
-**Maps to:** Cost · Guardrails · Executor · State/Context · LLM/Policy · **Distilled from:** Articraft `agent/cost.py`, `agent/harness.py`, `agent/defaults.py`, `agent/run_context.py`, `agent/single_run.py`
+**Maps to:** Cost · Guardrails · Executor · State/Context · LLM/Policy · **Distilled from:** Articraft `agent/cost.py`, `agent/harness.py`, `agent/defaults.py`, `agent/run_context.py`, `agent/single_run.py` · Claude Code 2.1.88 `src/cost-tracker.ts`, `src/utils/modelCost.ts`, `src/query/tokenBudget.ts`
 
 ## Why this module exists
 
@@ -45,6 +45,45 @@ Both paths persist `cost.json` first, mark the turn failed in the display, and r
 
 ### Companion guardrail: per-model-family default max-turns
 `DEFAULT_MAX_TURNS = 100`; Gemini 3 Flash gets 250 (`agent/defaults.py:1-21`) — the cheap/fast family gets 2.5x the turn budget, trading turns for per-turn capability. `resolve_max_turns` returns the explicit user value if given, else the family default, and the harness resolves it against the **actual** model id reported by the constructed provider client, not the raw CLI arg (`agent/harness.py:252`), so alias/default resolution happens first. Hitting the limit returns `reason=MAX_TURNS` with a message noting whether compile ever succeeded (`agent/harness.py:1501-1518`).
+
+## Comparative: Claude Code's cost posture
+
+**Unknown pricing estimates and flags, rather than silently disabling.** An
+unrecognised model falls back to a default price, emits telemetry, and sets a
+session flag (`utils/modelCost.ts:166-172`); the total is then rendered with
+"(costs may be inaccurate due to usage of unknown models)"
+(`cost-tracker.ts:228-233`). This is the middle path between Articraft's sharp
+edge (unknown pricing silently disables the tracker, so a user-set cap is never
+enforced) and refusing to run: **estimate, flag, and surface**.
+
+The distinction worth encoding is which failures get which treatment. When a
+*safety* property cannot be honoured, refuse loudly — an explicitly requested
+sandbox that cannot start returns a human-readable reason rather than running
+unsandboxed (`utils/sandbox/sandbox-adapter.ts:550-556`). When only *accuracy*
+is at stake, estimate and annotate. Conflating the two gives you either a
+brittle agent or an unsafe one.
+
+**Two independent budget systems, at different layers.** A server-side
+`task_budget` bounds the whole agentic turn, with `remaining` recomputed
+client-side across compaction boundaries — because after a compact the server
+sees only the summary and would under-count the spend that was summarised away
+(`query.ts:282-291, 504-515`). Separately, a client-side token budget can
+*extend* a turn: on reaching the threshold the loop injects a nudge message and
+continues rather than stopping, and records a `diminishing_returns` early-stop
+signal (`query.ts:1308-1355`). A budget is not only a ceiling; it can also be a
+statement about how much effort a task deserves.
+
+**Ledgers are per-model, not just per-session.** Usage is tracked by model with
+cache-read and cache-creation tokens broken out separately
+(`cost-tracker.ts:71-79, 200-226`), which is the granularity you need to answer
+"is the cache actually paying for itself" — the question that motivates most of
+reference 06.
+
+**The cheapest guardrail is a cache-hygiene rule.** One interpolated list inside
+a cached prompt prefix cost a production fleet a double-digit percentage of its
+cache-creation tokens — reference 06 has the measurement and the fix. No budget
+cap recovers that spend; only the structural discipline does. Cost control has
+two halves, and the structural half is the larger one.
 
 ## Design decisions
 

@@ -1,6 +1,6 @@
 # 06. System Prompt Architecture
 
-**Maps to:** SystemPrompt · Guardrails · State/Context · Tools · Memory · Cost · **Distilled from:** Articraft `agent/prompts/{spec,compile,loader}.py`, `agent/tools/__init__.py`, `agent/workspace_docs.py`, `agent/harness_guidance.py`, `agent/harness.py`, `storage/trajectories.py`
+**Maps to:** SystemPrompt · Guardrails · State/Context · Tools · Memory · Cost · **Distilled from:** Articraft `agent/prompts/{spec,compile,loader}.py`, `agent/tools/__init__.py`, `agent/workspace_docs.py`, `agent/harness_guidance.py`, `agent/harness.py`, `storage/trajectories.py` · Claude Code 2.1.88 `src/constants/systemPromptSections.ts`, `src/constants/prompts.ts`, `src/utils/attachments.ts`
 
 ## Why this module exists
 
@@ -39,6 +39,66 @@ Empty responses (no text, no tool calls) increment a streak counter (`agent/harn
 ### Content-addressed persistence + cache keying
 
 `ensure_shared_system_prompt_text` stores each run's prompt at `data/system_prompts/<sha256(text)>.txt`, verifying content equality on hash hit (`storage/trajectories.py:52-66`); run records store only the sha. The same hashing keys OpenAI prompt caching: `prompt_cache_key = 'ac1:' + digest of {provider, model_id, sdk_package, sha256(system_prompt), sha256(docs), sha256(tool_schemas)}`, capped at 64 chars (`agent/harness.py:138-183`) — server cache reuse exactly when the full static prefix is unchanged. Non-system prompts live in the same `sections/` dir: `gemini_compaction.md` is loaded at runtime as the history-compaction instruction (`agent/prompts/loader.py:87-91`, `agent/providers/gemini.py:811-813`), keeping ALL prompt text in one versioned directory.
+
+## Comparative: Claude Code's prompt assembly
+
+Articraft compiles per-provider prompt artifacts at build time. Claude Code
+assembles at *run* time, and its machinery answers a question Articraft's does
+not face: how to keep a prompt that changes every session cacheable.
+
+**Sections are memoised, and volatility is opt-in with a reason.**
+`systemPromptSection(name, compute)` caches until `/clear` or `/compact`;
+`DANGEROUS_uncachedSystemPromptSection(name, compute, reason)` recomputes every
+turn and **requires a reason argument** explaining why cache-breaking is
+necessary (`constants/systemPromptSections.ts:16-38`). The API makes the
+expensive choice loud at the call site — the single cheapest technique in this
+whole reference.
+
+**One marker separates the cacheable prefix from the volatile tail.**
+`SYSTEM_PROMPT_DYNAMIC_BOUNDARY` splits content that can be cached across
+*organisations* from user- and session-specific content, with a warning naming
+the two files that must be updated together if it moves
+(`constants/prompts.ts:105-115`).
+
+**Volatile lists live in messages, never in the prompt or a tool description.**
+The subagent list was interpolated into a tool description; MCP servers
+connecting asynchronously mutated it; each mutation invalidated the whole
+tool-schema cache — **~10.2% of fleet cache-creation tokens**
+(`tools/AgentTool/prompt.ts:48-59`). Same principle at a smaller scale: the
+per-UID temp directory is rewritten to the literal `$TMPDIR` so the shell tool's
+description is byte-identical across users and can share a cross-user cache
+(`tools/BashTool/prompt.ts:185-190`).
+
+**Runtime guidance is a closed vocabulary of typed attachments.** Articraft's
+guidance injection generalises here into ~40 named attachment kinds appended as
+user-role messages between turns — `todo_reminder`, `nested_memory`,
+`relevant_memories`, `skill_listing`, `skill_discovery`, `plan_mode`,
+`diagnostics`, `queued_command`, `hook_additional_context`, `edited_text_file`,
+`max_turns_reached`, `critical_system_reminder`, and more
+(`utils/attachments.ts:440-621`). Typing them is what makes them auditable,
+suppressible, and strippable before compaction — several are re-injected after a
+compact anyway, so they are removed from the summary input rather than
+summarised (`services/compact/compact.ts:203-224`).
+
+**Reminders are rate-limited, and the budget is cumulative.** The todo reminder
+fires only after 10 turns without a write and at most every 10 turns
+(`utils/attachments.ts:254-257`); plan-mode and auto-mode attachments every 5
+turns with a full restatement every 5th (`utils/attachments.ts:259-267`). Memory
+injection is capped three ways — 200 lines, 4 KB per file, and a cumulative
+**60 KB per session**, after which prefetching stops entirely — with the
+reasoning recorded inline: a per-turn cap bounds one injection, but "over a long
+session the selector keeps surfacing distinct files — ~26K tokens/session
+observed in prod" (`utils/attachments.ts:269-289`). Any recurring injection needs a
+session-level budget, not just a per-turn one.
+
+**Tool descriptions are prompts too.** The shell tool's description is built at
+runtime from feature flags, sandbox configuration, git settings and timeouts,
+and every reference to a sibling tool is an imported name constant rather than a
+string literal (`tools/BashTool/prompt.ts:275-369`) — so renaming a tool cannot
+leave a stale instruction behind. It also actively steers the model *away from
+itself*: "use Read not cat, Edit not sed", on the grounds that a general tool
+used for a specific job is harder for the user to review and permission
+(`tools/BashTool/prompt.ts:280-291`).
 
 ## Design decisions
 
