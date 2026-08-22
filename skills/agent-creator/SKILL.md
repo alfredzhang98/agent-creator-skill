@@ -1,9 +1,10 @@
 ---
 name: agent-creator
 description: >-
-  Design, build, or review any part of an LLM agent — loop, tools, verifier,
-  prompts, memory, planning, permissions, sandboxing, cost, orchestration —
-  or debug agent failure modes. Distilled from two production codebases.
+  Build a complete agent from one sentence, or design, review and debug any
+  single part of one — loop, tools, verifier, prompts, memory, planning,
+  permissions, sandboxing, cost, orchestration. Distilled from two production
+  codebases.
 ---
 
 # Agent Creator
@@ -53,7 +54,55 @@ input/task → LLM (brain) → decide: answer? tool? plan?
 
 ### Building a new agent from scratch
 
-Work through the modules in this order — each layer depends on the previous:
+**The user says one sentence. You do the rest.**
+
+Nobody asking for an agent knows what reference 10 is, and they should never
+have to. Route from the request's semantics, decide the defaults yourself, and
+ask only about the things that are genuinely the user's call.
+
+#### Decide these silently, from the request
+
+| Question | How to answer it | Reference |
+|---|---|---|
+| **What may the agent produce?** | If the output has a format you can constrain — a script, a config, a scene, a query — design a small declarative vocabulary for it and forbid the raw format. If the agent must act on an open world (arbitrary files, arbitrary commands), keep the tool surface narrow instead and pay for it with permissions. | `10` |
+| **What decides "done"?** | Is there a mechanical check? **Decisive** (compiler, simulator, schema validator, test suite that fully covers the goal) → *gating*: the run cannot end until it passes. **Partial** (linter, type checker, some tests) → *advisory*: report attribution-scoped, report-once, never block. **None** → the human decides, so invest in making the question cheap. Never zero authorities. | `03`, `13` |
+| **Does it delegate?** | If a step reads far more than it writes, spawn a subagent for it. Allowlists replace, never extend. | `09` |
+| **Will context outgrow the window?** | Only then: progressive disclosure, compaction ladder, memory. Not before. | `11`, `05`, `14` |
+
+#### Wire these in every time, without being asked
+
+These are not features to be requested. An agent missing any of them is
+broken, and the user has no way to know that:
+
+- **A sandbox** for anything the model authors and you then execute — OS-level
+  boundary, network off, non-root, wall-clock kill. `04`
+- **A hard budget cap**, checked before and after each call, plus a turn cap.
+  If the domain has a second cost axis (GPU time, API quota, physical
+  actuation), cap that too and estimate it *before* the call. `07`
+- **Tool errors as data**, never exceptions. `02`
+- **A typed loop**: named exits, named continuations, recovery ladders. `01`
+- **Staging then promote**, so the durable store only ever holds verified
+  work, and a crash leaves something inspectable. `08`
+- **A consent ladder** the moment a human is in the loop at all. `13`
+
+#### Ask the user only about these
+
+Everything above you decide. These change what you build and cannot be
+inferred:
+
+1. **Is a human present, or is this headless?** Determines whether consent can
+   be an authority at all.
+2. **Does it compose with an existing agent or service?** (Naming one — "use
+   Articraft for the assets" — is the user's call, not yours to assume.)
+3. **What does one run cost, at most?** In money and in wall-clock.
+
+Ask them together, once, in one question. Do not interview.
+
+#### Then build in this order
+
+The order is a dependency chain, not a checklist: the action space determines
+whether a verifier is possible, and the verifier determines how the loop can
+exit. Built backwards, both get rewritten.
 
 1. **Action space first** (`10-action-space-sdk.md`): decide what the agent is
    allowed to produce and through which constrained vocabulary. The single

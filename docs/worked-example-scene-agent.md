@@ -36,22 +36,47 @@ describe that.
 
 ---
 
-## Install
+## Two sentences
 
 ```bash
 npx skills add alfredzhang98/agent-creator-skill --skill agent-creator
 ```
 
-Then, in your coding agent:
+**Build it** — one sentence to your coding agent:
 
-> Using the agent-creator skill, design an agent that turns a text description
-> into an Isaac Sim scene. Follow the build order in SKILL.md — action space
-> first, verifier second.
+> Using the agent-creator skill, build me an agent that turns a sentence into
+> a photoreal 3D scene rendered in Isaac Sim, generating the objects in it
+> with Articraft.
 
-**Do not skip the build order.** It is a dependency chain, not a table of
+**Use it** — one sentence to the agent you just built:
+
+> A room with a standing desk, an adjustable lamp and a mug on it, window
+> light from the left, 35mm shot.
+
+That is the whole interface. Everything below is what the skill decides on
+your behalf, written out so you can disagree with it.
+
+You are asked exactly one thing during the build, because it cannot be
+inferred: *is a human watching, what is the per-run budget, and is Articraft
+really the asset source you want?* The rest — action space, verifier tier,
+sandbox, cost caps, staging, typed loop — is chosen from the request and wired
+in whether or not you knew to ask.
+
+### What the skill decides here, and why
+
+| Decision | What it picks for this request | Because |
+|---|---|---|
+| Action space | a scene DSL, raw USD forbidden | the output has a constrainable format |
+| Verifier tier | **gating** | physics is a decisive oracle |
+| Delegation | one subagent per asset | asset generation reads far more than it writes |
+| Sandbox | container, GPU passthrough, no network | the model authors code that then executes |
+| Budget | tokens **and** GPU-seconds, estimated pre-call | one render can outcost the conversation |
+| Disclosure / memory | not yet | context does not outgrow the window at this size |
+
+**Do not reorder the build.** It is a dependency chain, not a table of
 contents: the action space determines whether a verifier is possible at all,
-and the verifier determines how the loop can exit. Built backwards, you
-rewrite both.
+and the verifier determines how the loop can exit. Built backwards, both get
+rewritten.
 
 ---
 
@@ -350,6 +375,23 @@ Each of these is in a pitfalls section already.
 | Placing the volatile asset list in the tool description → cache thrash | 06, 11 |
 
 ---
+
+## If you are typing rather than reading
+
+Build:
+
+> Using the agent-creator skill, build me an agent that turns a sentence into
+> a photoreal 3D scene rendered in Isaac Sim, generating the objects in it
+> with Articraft.
+
+Use:
+
+> A room with a standing desk, an adjustable lamp and a mug on it, window
+> light from the left, 35mm shot.
+
+Then, when something fails, the only question that matters:
+
+> When it fails, can the model fix it from the error message alone?
 
 ## The short version
 
