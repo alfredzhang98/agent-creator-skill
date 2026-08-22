@@ -6,17 +6,7 @@
 15 module references with machine-verified provenance, plus a working
 stdlib-only agent core you can lift.
 
-<!-- tags -->
-[![Skill](https://img.shields.io/badge/type-agent%20skill-7B1FA2)](skills/agent-creator/SKILL.md)
-[![Plugin](https://img.shields.io/badge/claude%20code-plugin-1565C0)](plugin.json)
-[![Version](https://img.shields.io/badge/version-0.4.1-455A64)](plugin.json)
-[![License](https://img.shields.io/badge/license-Apache--2.0-00796B)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10%2B-3776AB)](skills/agent-creator/templates/agentkit/)
-[![Dependencies](https://img.shields.io/badge/dependencies-none-558B2F)](skills/agent-creator/templates/agentkit/)
-[![Citations](https://img.shields.io/badge/citations-364%20anchored-558B2F)](tools/verify_citations.py)
-[![Tests](https://img.shields.io/badge/regression-120%20assertions-558B2F)](skills/agent-creator/templates/agentkit/tests.py)
-[![Audit](https://img.shields.io/badge/audit-33%20defects%20fixed-F9A825)](docs/AUDIT.md)
-[![Case studies](https://img.shields.io/badge/agents%20distilled-2-F9A825)](skills/agent-creator/case-studies/)
+[![skills.sh](https://skills.sh/b/alfredzhang98/agent-creator-skill)](https://skills.sh/alfredzhang98/agent-creator-skill)
 
 `agent` · `llm-agent` · `agent-architecture` · `claude-code` · `agent-skill`
 · `tool-use` · `reverse-engineering`
@@ -210,7 +200,8 @@ good defaults, not laws.
 
 ## Provenance, and how far it is checked
 
-Every `file:line` points at a pinned source tree (`claude-code-2.1.88`).
+All 364 `file:line` citations point at a pinned source tree
+(`claude-code-2.1.88`).
 [`tools/verify_citations.py`](tools/verify_citations.py) checks them and records
 a **content anchor** — a fingerprint of the lines actually cited — in
 `tools/citations.lock.json`:
